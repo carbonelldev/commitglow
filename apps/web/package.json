@@ -1,0 +1,33 @@
+{
+  "name": "@commitglow/web",
+  "version": "0.1.0",
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@commitglow/db": "workspace:*",
+    "@commitglow/ui": "workspace:*",
+    "@tailwindcss/postcss": "^4.1.7",
+    "better-auth": "^1.2.8",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.45.2",
+    "next": "^15.3.2",
+    "postgres": "^3.4.5",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwindcss": "^4.1.7"
+  },
+  "devDependencies": {
+    "@commitglow/config": "workspace:*",
+    "@types/node": "^22.15.17",
+    "@types/react": "^19.1.4",
+    "@types/react-dom": "^19.1.5",
+    "typescript": "^5.8.3"
+  }
+}
