@@ -11,26 +11,26 @@ import { seo } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Pricing — AI Changelog & Release Notes Plans | CommitGlow",
-  description: "Start free, upgrade when CommitGlow becomes part of how you ship. Compare Starter, Pro, and Team plans for AI release notes, changelogs, and launch posts.",
+  description: "Simple pricing for cleaner changelogs, release notes, and launch posts. Compare Starter, Pro, and Team plans for CommitGlow.",
   alternates: {
     canonical: `${seo.siteUrl}/pricing`,
   },
   openGraph: {
     title: "Pricing — AI Changelog & Release Notes Plans | CommitGlow",
-    description: "Start free, upgrade when CommitGlow becomes part of how you ship. Compare Starter, Pro, and Team plans.",
+    description: "Simple pricing for cleaner changelogs, release notes, and launch posts. Compare Starter, Pro, and Team plans.",
     url: `${seo.siteUrl}/pricing`,
   },
   twitter: {
     title: "Pricing — AI Changelog & Release Notes Plans | CommitGlow",
-    description: "Start free, upgrade when CommitGlow becomes part of how you ship.",
+    description: "Simple pricing for cleaner changelogs, release notes, and launch posts.",
   },
 };
 
 const questions = [
   ["Can I use it for free?", "Yes. Starter is designed for trying CommitGlow and shipping small projects."],
   ["What counts as a generation?", "One generated release-note, changelog, post, or brief output from a change set."],
-  ["Will I get surprise overage charges?", "No on Starter and Pro. Team only meters generations beyond the included monthly amount, and the per-generation price is shown before checkout."],
-  ["How does Team usage billing work?", "Team has a monthly base price, includes a monthly generation allowance, then bills only additional generations at the listed metered rate."],
+  ["Will I get surprise overage charges?", "No on Starter and Pro. Team only bills extra generations after the included monthly allowance, and the per-generation price is shown before checkout."],
+  ["How does Team usage billing work?", "Team starts at $15/month, includes 1,000 generations, then bills only additional generations at $0.01 each."],
   ["Is my account a workspace?", "Yes. Every signed-in account starts as a personal workspace. There is no separate user workspace concept in the product UI."],
   ["Can I create multiple workspaces?", "Yes. Starter includes up to 2 workspaces total so you can separate personal and product work. Paid plans will unlock more."],
   ["Can I connect multiple Git accounts?", "The schema supports multiple provider accounts per workspace, including GitHub, GitLab, and Bitbucket. Paid limits will gate that once connection UI ships."],
@@ -44,12 +44,12 @@ const faqSchemaItems = questions.map(([question, answer]) => ({
 }));
 
 const comparisonRows = [
-  ["Monthly generations", "25", "200", "1,000 included, then metered"],
-  ["Automatic overage billing", "No", "No", "$0.01 per extra generation"],
-  ["Workspaces", "2", "5", "Unlimited"],
-  ["Projects", "3 per workspace", "Unlimited", "Unlimited"],
-  ["Connected Git accounts", "1", "5", "Unlimited"],
-  ["Best output fit", "Release notes", "Launch posts + email", "Internal briefs + approvals"],
+  ["Monthly generations", "25", "300", "1,000 included, then metered", "Custom"],
+  ["Automatic overage billing", "No", "No", "$0.01 each after allowance", "Custom contract"],
+  ["Workspaces", "2", "5", "Unlimited", "Custom"],
+  ["Projects", "3 per workspace", "Unlimited", "Unlimited", "Custom"],
+  ["Connected Git accounts", "1", "5", "Unlimited", "Custom"],
+  ["Best output fit", "Release notes", "Launch posts + email", "Shared team workflows", "Security + scale"],
 ] as const;
 
 function CheckIcon() {
@@ -63,8 +63,36 @@ function CheckIcon() {
 const tierData = planList.map((tier) => {
   const checkoutSlug = "checkoutSlug" in tier ? (tier.checkoutSlug as PaidPlanSlug | undefined) : undefined;
   const polarConfigured = checkoutSlug ? isPolarCheckoutConfigured(checkoutSlug) : false;
-  return { tier, checkoutSlug, polarConfigured };
+  return { tier, checkoutSlug, polarConfigured, contactHref: undefined };
 });
+
+const enterpriseTier = {
+  tier: {
+    slug: "enterprise",
+    label: "Enterprise",
+    price: "Contact us",
+    cadence: "",
+    description:
+      "For companies that need security, custom limits, and dedicated support.",
+    cta: "Contact sales",
+    highlighted: false,
+    includedGenerations: null,
+    features: [
+      "Custom generation limits",
+      "SSO/SAML",
+      "Security review",
+      "Custom contracts",
+      "Invoice billing",
+      "Dedicated support",
+      "SLA options",
+    ],
+  },
+  checkoutSlug: undefined,
+  polarConfigured: false,
+  contactHref: "mailto:sales@commitglow.ai?subject=CommitGlow%20Enterprise",
+} as const;
+
+const pricingTierData = [...tierData, enterpriseTier];
 
 export default function PricingPage() {
   return (
@@ -74,17 +102,17 @@ export default function PricingPage() {
       <section className="mx-auto w-full max-w-7xl px-5 pt-16 sm:px-8 lg:pt-24">
         <div className="border border-white/10 bg-[linear-gradient(rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.055)_1px,transparent_1px)] bg-[size:128px_72px] px-5 py-20 text-center sm:px-8 lg:py-28">
           <h1 className="mx-auto max-w-4xl font-mono text-3xl leading-tight tracking-[-0.06em] text-white sm:text-6xl">
-            Find a plan for every release workflow.
+            Simple pricing for cleaner changelogs, release notes, and launch posts.
           </h1>
           <p className="mx-auto mt-5 max-w-2xl font-mono text-sm leading-7 text-zinc-400 sm:text-base">
-            Start free. Upgrade when CommitGlow becomes part of how you ship.
+            Start free. Upgrade when your releases need more polish.
           </p>
           <PricingCurrentPlanBadge />
         </div>
       </section>
 
-      <section id="plans" className="mx-auto grid w-full max-w-7xl overflow-hidden border-x border-b border-white/10 bg-black/20 divide-y divide-white/10 lg:grid-cols-3 lg:divide-x lg:divide-y-0">
-        {tierData.map(({ tier, checkoutSlug, polarConfigured }) => (
+      <section id="plans" className="mx-auto grid w-full max-w-7xl overflow-hidden border-x border-b border-white/10 bg-black/20 divide-y divide-white/10 lg:grid-cols-4 lg:divide-x lg:divide-y-0">
+        {pricingTierData.map(({ tier, checkoutSlug, polarConfigured, contactHref }) => (
           <Card
             key={tier.slug}
             className={[
@@ -106,11 +134,12 @@ export default function PricingPage() {
                 <span className="text-2xl font-bold tracking-[-0.06em] text-white transition-transform duration-300 group-hover:scale-105">{tier.price}</span>
                 <span className="pb-1 text-sm text-zinc-400">{tier.cadence}</span>
               </div>
-              <p className="mt-2 text-xs text-zinc-500">{tier.includedGenerations} generations included</p>
+              <p className="mt-2 text-xs text-zinc-500">{tier.includedGenerations === null ? "Custom generation limits" : `${tier.includedGenerations} generations included`}</p>
             </div>
             <PricingTierCta
               tierSlug={tier.slug}
               checkoutSlug={checkoutSlug}
+              contactHref={contactHref}
               label={tier.cta}
               highlighted={tier.highlighted}
               polarConfigured={polarConfigured}
@@ -132,19 +161,21 @@ export default function PricingPage() {
           <h2 className="font-mono text-2xl tracking-[-0.04em] text-white">Compare plans</h2>
         </div>
         <Card className="overflow-x-auto rounded-none border-0 bg-black/20 p-0">
-          <div className="min-w-[720px]">
-            <div className="grid grid-cols-4 border-b border-white/10 font-mono text-sm text-zinc-400">
+          <div className="min-w-[900px]">
+            <div className="grid grid-cols-5 border-b border-white/10 font-mono text-sm text-zinc-400">
               <div className="p-5 text-center">Features</div>
               <div className="p-5 text-center text-white">Starter</div>
               <div className="p-5 text-center text-white">Pro</div>
               <div className="p-5 text-center text-white">Team</div>
+              <div className="p-5 text-center text-white">Enterprise</div>
             </div>
-            {comparisonRows.map(([feature, starter, pro, team]) => (
-              <div key={feature} className="grid grid-cols-4 border-b border-white/10 font-mono text-xs leading-5 last:border-b-0 sm:text-sm">
+            {comparisonRows.map(([feature, starter, pro, team, enterprise]) => (
+              <div key={feature} className="grid grid-cols-5 border-b border-white/10 font-mono text-xs leading-5 last:border-b-0 sm:text-sm">
                 <div className="p-5 text-center font-semibold text-zinc-300">{feature}</div>
                 <div className="p-5 text-center text-zinc-400">{starter}</div>
                 <div className="p-5 text-center text-zinc-100">{pro}</div>
                 <div className="p-5 text-center text-zinc-400">{team}</div>
+                <div className="p-5 text-center text-zinc-400">{enterprise}</div>
               </div>
             ))}
           </div>

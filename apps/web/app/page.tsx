@@ -56,7 +56,7 @@ const proofPoints = [
   ["Open-source core", "Built around developer-owned markdown instead of locked-in release content."],
 ] as const;
 
-const pricingNotes = ["Starter: 25 generations", "Pro: 200 generations", "Team: shared release workflows"];
+const pricingNotes = ["Starter: 25 generations", "Pro: 300 generations", "Team: 1,000 included generations"];
 
 const demoCommits = [
   ["feat", "Stream AI changelog drafts from selected commits", true],

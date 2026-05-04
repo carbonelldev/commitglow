@@ -80,18 +80,29 @@ export function PricingCurrentPlanBadge() {
 export function PricingTierCta({
   tierSlug,
   checkoutSlug,
+  contactHref,
   label,
   highlighted,
   polarConfigured,
 }: {
   tierSlug: string;
   checkoutSlug?: string;
+  contactHref?: string;
   label: string;
   highlighted: boolean;
   polarConfigured: boolean;
 }) {
   const { isPending, isAuthenticated, activePlan, session } = useAuthState();
   const isCurrentPlan = activePlan === tierSlug;
+
+  if (contactHref) {
+    return (
+      <AnchorButton href={contactHref} variant={highlighted ? "primary" : "secondary"} className="group mt-8 w-full rounded-full hover:shadow-[0_0_28px_rgba(139,92,246,0.22)]">
+        <span>{label}</span>
+        <ArrowRightIcon />
+      </AnchorButton>
+    );
+  }
 
   if (isPending) {
     return (
