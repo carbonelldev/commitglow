@@ -16,12 +16,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const page = getHttpStatusPage(Number(code));
 
   if (!page) {
-    return { title: "HTTP Error | CommitGlow" };
+    return { title: "HTTP Error | CommitGlow", robots: { index: false, follow: true } };
   }
 
   return {
     title: `${page.code} ${page.title} | CommitGlow`,
     description: page.message,
+    robots: {
+      index: false,
+      follow: true,
+    },
   };
 }
 

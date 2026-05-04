@@ -21,7 +21,7 @@ export default async function WorkspaceSettingsPage() {
     <div className="mx-auto max-w-6xl">
       <div className="border-b border-white/10 pb-8">
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-violet-200">// Workspace Settings</p>
-        <h1 className="mt-4 font-mono text-4xl text-white">{snapshot.organization.name}</h1>
+        <h1 className="mt-4 font-mono text-3xl text-white sm:text-4xl">{snapshot.organization.name}</h1>
         <p className="mt-3 max-w-2xl text-zinc-400">Workspace-scoped settings for projects, repositories, provider connections, and future shared usage.</p>
       </div>
 

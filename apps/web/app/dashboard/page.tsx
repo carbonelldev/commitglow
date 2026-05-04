@@ -90,35 +90,35 @@ export default async function DashboardPage() {
       <div className="flex flex-col gap-6 border-b border-white/10 pb-8 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.18em] text-violet-200">// Dashboard</p>
-          <h1 className="mt-4 font-mono text-4xl text-white">Your release desk.</h1>
+          <h1 className="mt-4 font-mono text-3xl text-white sm:text-4xl">Your release desk.</h1>
           <p className="mt-3 max-w-2xl text-zinc-400">You are working inside {organization.name}. Create projects, connect repositories, and turn shipped work into clean product updates.</p>
         </div>
         <AnchorButton href="/dashboard/projects" variant="primary">New Project</AnchorButton>
       </div>
-      <div className="mt-8 grid gap-5 sm:grid-cols-3 xl:grid-cols-6">
+      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 xl:grid-cols-6">
         <Card>
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Projects</p>
-          <p className="mt-4 font-mono text-4xl text-white">{projectCount?.value ?? 0}</p>
+          <p className="mt-4 font-mono text-3xl text-white sm:text-4xl">{projectCount?.value ?? 0}</p>
         </Card>
         <Card>
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Repositories</p>
-          <p className="mt-4 font-mono text-4xl text-white">{repositoryCount?.value ?? 0}</p>
+          <p className="mt-4 font-mono text-3xl text-white sm:text-4xl">{repositoryCount?.value ?? 0}</p>
         </Card>
         <Card>
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Changelogs</p>
-          <p className="mt-4 font-mono text-4xl text-white">{changelogCount?.value ?? 0}</p>
+          <p className="mt-4 font-mono text-3xl text-white sm:text-4xl">{changelogCount?.value ?? 0}</p>
         </Card>
         <Card>
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Commits</p>
-          <p className="mt-4 font-mono text-4xl text-white">{commitCount?.value ?? 0}</p>
+          <p className="mt-4 font-mono text-3xl text-white sm:text-4xl">{commitCount?.value ?? 0}</p>
         </Card>
         <Card>
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Providers</p>
-          <p className="mt-4 font-mono text-4xl text-white">{providerCount}</p>
+          <p className="mt-4 font-mono text-3xl text-white sm:text-4xl">{providerCount}</p>
         </Card>
         <Card>
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Generations</p>
-          <p className="mt-4 font-mono text-4xl text-white">{generationCount?.value ?? 0}</p>
+          <p className="mt-4 font-mono text-3xl text-white sm:text-4xl">{generationCount?.value ?? 0}</p>
         </Card>
       </div>
 

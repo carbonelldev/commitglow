@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Input } from "@commitglow/ui";
+import { Button, Input, Select } from "@commitglow/ui";
 import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { attachRepository, getGitHubBranches, searchGitHubRepositories, type GitHubRepositorySearchResult, type RepositoryFormState } from "@/app/dashboard/repositories/actions";
@@ -99,17 +99,16 @@ export function RepositoryAttachForm({ projects, fixedProjectId, fixedProjectNam
       ) : (
         <label className="block">
           <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Project</span>
-          <select
+          <Select
             name="projectId"
             required
             disabled={disabled}
-            className="w-full rounded-sm border border-white/10 bg-black/40 px-4 py-3 font-mono text-sm text-white outline-none transition focus:border-violet-300/70 focus:ring-2 focus:ring-violet-300/20 disabled:opacity-50"
           >
             <option value="">Select project</option>
             {projects.map((project) => (
               <option key={project.id} value={project.id}>{project.name}</option>
             ))}
-          </select>
+          </Select>
         </label>
       )}
       {fixedProjectName ? <p className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-600">Project: {fixedProjectName}</p> : null}
@@ -165,11 +164,11 @@ export function RepositoryAttachForm({ projects, fixedProjectId, fixedProjectNam
           <p className="mt-1 font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">{selectedRepository.provider}</p>
           <label className="mt-4 block">
             <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Branch</span>
-            <select name="selectedBranch" value={selectedBranch} onChange={(event) => setSelectedBranch(event.target.value)} className="w-full rounded-sm border border-white/10 bg-black/40 px-4 py-3 font-mono text-sm text-white outline-none transition focus:border-violet-300/70 focus:ring-2 focus:ring-violet-300/20">
+            <Select name="selectedBranch" value={selectedBranch} onChange={(event) => setSelectedBranch(event.target.value)}>
               {branches.map((branch) => (
                 <option key={branch} value={branch}>{branch}</option>
               ))}
-            </select>
+            </Select>
           </label>
         </div>
       ) : null}

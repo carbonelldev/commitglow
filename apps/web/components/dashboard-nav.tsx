@@ -48,6 +48,9 @@ const links = [
   { href: "/dashboard/workspace/settings", label: "Workspace Settings", icon: "sliders" }
 ];
 
+const dropdownPanelClass = "dropdown-panel absolute z-50 overflow-hidden rounded-sm border border-violet-300/25 bg-[#050507]/98 shadow-[0_26px_90px_rgba(0,0,0,0.62),0_0_54px_rgba(139,92,246,0.16)] ring-1 ring-white/[0.03] backdrop-blur-xl";
+const dropdownItemClass = "relative flex w-full items-center gap-3 px-3 py-2.5 text-left transition before:pointer-events-none before:absolute before:inset-y-1 before:left-0 before:w-px before:bg-transparent hover:bg-white/[0.045] hover:before:bg-violet-200/70";
+
 function initials(name: string) {
   return name
     .split(" ")
@@ -59,7 +62,7 @@ function initials(name: string) {
 
 function linkClass(active: boolean) {
   return [
-    "group flex min-w-[10rem] items-center gap-3 rounded-sm border px-3 py-2.5 text-left font-mono text-xs uppercase tracking-[0.14em] transition lg:min-w-0",
+    "group flex min-h-11 min-w-[10rem] items-center gap-3 rounded-sm border px-3 py-2.5 text-left font-mono text-xs uppercase tracking-[0.14em] transition lg:min-w-0",
     active
       ? "border-violet-300/50 bg-violet-500/10 text-white shadow-[0_0_24px_rgba(139,92,246,0.12)]"
       : "border-transparent text-zinc-500 hover:border-white/10 hover:bg-white/[0.03] hover:text-white"
@@ -177,41 +180,46 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
     <aside className="relative z-20 border-b border-white/10 bg-[#050507]/95 shadow-[20px_0_80px_rgba(0,0,0,0.32)] lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-72 lg:shrink-0 lg:flex-col lg:border-b-0 lg:border-r">
       <div className="relative border-b border-white/10 px-4 py-4">
         <details className="group/top relative lg:block">
-          <summary className="flex cursor-pointer list-none items-center gap-3 rounded-sm border border-transparent px-2 py-2 transition hover:border-white/10 hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
+          <summary className="flex cursor-pointer list-none items-center gap-3 rounded-sm border border-transparent px-2 py-2 transition hover:border-violet-300/25 hover:bg-white/[0.035] group-open/top:border-violet-300/30 group-open/top:bg-violet-500/[0.06] [&::-webkit-details-marker]:hidden">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-violet-300/40 bg-violet-500/10 font-mono text-xs text-violet-100">
               {initials(organization.name)}
             </span>
             <span className="min-w-0 flex-1 truncate font-mono text-sm text-white">{organization.name}</span>
-            <span className="font-mono text-xs text-zinc-600 transition group-open/top:rotate-180">v</span>
+            <span className="font-mono text-xs text-zinc-600 transition group-open/top:rotate-180 group-open/top:text-violet-100">v</span>
           </summary>
-          <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-sm border border-violet-300/20 bg-[#050507]/98 shadow-[0_24px_80px_rgba(0,0,0,0.55),0_0_40px_rgba(139,92,246,0.12)] backdrop-blur lg:left-0 lg:right-auto lg:w-80">
-            <div className="border-b border-white/10 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-violet-200">// Workspaces</div>
+          <div className={`${dropdownPanelClass} left-0 right-0 top-full mt-2 lg:left-0 lg:right-auto lg:w-80`}>
+            <div className="h-px bg-gradient-to-r from-transparent via-violet-200/80 to-transparent" />
+            <div className="border-b border-white/10 bg-white/[0.025] px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-violet-200">// Workspaces</div>
             <div className="max-h-56 overflow-y-auto py-1 scrollbar-soft">
-              {organizations.map((item) => (
+              {organizations.map((item) => {
+                const active = item.id === organization.id;
+
+                return (
                 <form key={item.id} action={switchWorkspace}>
                   <input type="hidden" name="organizationId" value={item.id} />
-                  <button className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-white/[0.03]" type="submit">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-violet-300/30 bg-violet-500/10 font-mono text-xs text-violet-100">
+                  <button className={[dropdownItemClass, active ? "bg-violet-500/[0.08] before:bg-violet-200/80" : ""].join(" ")} type="submit">
+                    <span className={["flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border font-mono text-xs", active ? "border-violet-200/55 bg-violet-500/15 text-white shadow-[0_0_24px_rgba(139,92,246,0.18)]" : "border-violet-300/30 bg-violet-500/10 text-violet-100"].join(" ")}>
                       {initials(item.name)}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-mono text-sm text-white">{item.name}</span>
                       <span className="block truncate font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-600">{item.role}</span>
                     </span>
-                    {item.id === organization.id ? (
+                    {active ? (
                       <svg aria-hidden="true" className="h-4 w-4 text-violet-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                         <path d="m5 12 4 4 10-10" />
                       </svg>
                     ) : null}
                   </button>
                 </form>
-              ))}
+                );
+              })}
             </div>
             <button
               type="button"
               disabled={workspaceLimit.reached}
               onClick={() => setCreateWorkspaceOpen(true)}
-              className="group flex w-full items-center gap-3 border-t border-white/10 px-4 py-3 text-left font-mono text-xs uppercase tracking-[0.14em] text-zinc-400 transition hover:bg-white/[0.03] hover:text-white disabled:cursor-not-allowed disabled:text-zinc-700 disabled:hover:bg-transparent"
+              className="group relative flex w-full items-center gap-3 border-t border-white/10 bg-white/[0.018] px-4 py-3 text-left font-mono text-xs uppercase tracking-[0.14em] text-zinc-400 transition hover:bg-violet-500/[0.07] hover:text-white disabled:cursor-not-allowed disabled:text-zinc-700 disabled:hover:bg-transparent"
               title={workspaceLimit.reached ? `Workspace limit reached: ${workspaceLimit.count}/${workspaceLimit.label}` : "Create workspace"}
             >
               <Icon name="plus" />
@@ -351,6 +359,68 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
         )}
       </div>
 
+      <details className="group/mobile border-t border-white/10 lg:hidden">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 font-mono text-xs uppercase tracking-[0.14em] text-zinc-400 transition hover:bg-white/[0.03] hover:text-white [&::-webkit-details-marker]:hidden">
+          <span>More</span>
+          <span className="text-zinc-600 transition group-open/mobile:rotate-180">v</span>
+        </summary>
+        <div className="max-h-[60vh] overflow-y-auto border-t border-white/10 px-4 py-4 scrollbar-soft">
+          <a
+            href="/pricing"
+            className="group mb-3 flex items-center justify-between gap-3 rounded-sm border border-violet-300/20 bg-violet-500/[0.06] px-3 py-3 transition hover:border-violet-200/50 hover:bg-violet-500/10"
+          >
+            <div className="min-w-0">
+              <p className="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-violet-100">{isFreePlan ? "Upgrade" : "Account Plan"}</p>
+              <p className="truncate text-xs text-zinc-500">{isFreePlan ? "More workspaces" : plans[accountPlan].label}</p>
+            </div>
+            <span className="shrink-0 rounded-sm border border-white/10 bg-black/20 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-zinc-400">{accountPlan}</span>
+          </a>
+
+          <div className="grid gap-2 border-b border-white/10 pb-4">
+            <a href="/dashboard/account" className="rounded-sm border border-white/10 px-3 py-3 font-mono text-xs uppercase tracking-[0.14em] text-zinc-400 transition hover:border-violet-300/40 hover:bg-white/[0.03] hover:text-white">Account settings</a>
+            <a href="/" className="rounded-sm border border-white/10 px-3 py-3 font-mono text-xs uppercase tracking-[0.14em] text-zinc-400 transition hover:border-violet-300/40 hover:bg-white/[0.03] hover:text-white">Homepage</a>
+          </div>
+
+          {activeProject && activeProject.repositories.length > 0 ? (
+            <div className="border-b border-white/10 py-4">
+              {sectionTitle("Project Repos", activeProject.repositories.length)}
+              <div className="grid gap-1">
+                {activeProject.repositories.map((repository) => (
+                  <a key={repository.id} href={`/dashboard/projects/${activeProject.slug}/repositories/${repository.id}`} className="group flex min-h-11 items-center gap-2 rounded-sm px-2 py-2 font-mono text-[11px] uppercase tracking-[0.12em] text-zinc-500 transition hover:bg-white/[0.03] hover:text-white" title={`${repository.owner}/${repository.name}`}>
+                    <Icon name="repo" />
+                    <span className="truncate">{repository.owner}/{repository.name}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          <div className="py-4">
+            {sectionTitle("Workspace Tree", projects.length)}
+            {projects.length === 0 ? (
+              <div className="rounded-sm border border-dashed border-white/10 p-4">
+                <p className="text-sm text-zinc-500">No projects yet.</p>
+                <p className="mt-2 text-xs leading-5 text-zinc-700">Create one and it will appear here.</p>
+              </div>
+            ) : (
+              <div className="grid gap-1">
+                {projects.map((project) => (
+                  <a
+                    key={project.id}
+                    href={`/dashboard/projects/${project.slug}`}
+                    className="group flex min-h-11 items-center gap-3 rounded-sm border border-transparent px-3 py-2.5 font-mono text-xs uppercase tracking-[0.14em] text-zinc-500 transition hover:border-white/10 hover:bg-white/[0.03] hover:text-white"
+                    title={project.name}
+                  >
+                    <Icon name="folder" />
+                    <span className="truncate font-medium">{project.name}</span>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </details>
+
       <div className="border-t border-white/10 p-4">
         <div className="hidden lg:block">
           <a
@@ -364,14 +434,15 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
             <span className="shrink-0 rounded-sm border border-white/10 bg-black/20 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-zinc-400">{accountPlan}</span>
           </a>
           <details className="group/profile relative">
-            <summary className="flex cursor-pointer list-none items-center gap-3 rounded-sm border border-white/10 bg-black/30 px-2 py-2 transition hover:border-violet-300/50 hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
+            <summary className="flex cursor-pointer list-none items-center gap-3 rounded-sm border border-white/10 bg-black/30 px-2 py-2 transition hover:border-violet-300/50 hover:bg-white/[0.03] group-open/profile:border-violet-300/40 group-open/profile:bg-violet-500/[0.06] [&::-webkit-details-marker]:hidden">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-white/10 bg-white/[0.03] font-mono text-xs text-violet-200">{initials(identity.name)}</span>
               <span className="min-w-0 flex-1 truncate font-mono text-xs text-zinc-300">{identity.email}</span>
-              <span className="font-mono text-xs text-zinc-600">...</span>
+              <span className="font-mono text-xs text-zinc-600 transition group-open/profile:text-violet-100">...</span>
             </summary>
-            <div className="absolute bottom-full left-0 right-0 z-50 mb-2 overflow-hidden rounded-sm border border-violet-300/20 bg-[#050507]/98 shadow-[0_24px_80px_rgba(0,0,0,0.55),0_0_40px_rgba(139,92,246,0.12)] backdrop-blur">
-              <a href="/dashboard/account" className="block px-4 py-3 font-mono text-xs uppercase tracking-[0.14em] text-zinc-400 transition hover:bg-white/[0.03] hover:text-white">Account settings</a>
-              <a href="/" className="block border-t border-white/10 px-4 py-3 font-mono text-xs uppercase tracking-[0.14em] text-zinc-400 transition hover:bg-white/[0.03] hover:text-white">Homepage</a>
+            <div className={`${dropdownPanelClass} bottom-full left-0 right-0 mb-2`}>
+              <div className="h-px bg-gradient-to-r from-transparent via-violet-200/80 to-transparent" />
+              <a href="/dashboard/account" className="relative block px-4 py-3 font-mono text-xs uppercase tracking-[0.14em] text-zinc-400 transition before:pointer-events-none before:absolute before:inset-y-1 before:left-0 before:w-px before:bg-transparent hover:bg-white/[0.045] hover:text-white hover:before:bg-violet-200/70">Account settings</a>
+              <a href="/" className="relative block border-t border-white/10 px-4 py-3 font-mono text-xs uppercase tracking-[0.14em] text-zinc-400 transition before:pointer-events-none before:absolute before:inset-y-1 before:left-0 before:w-px before:bg-transparent hover:bg-white/[0.045] hover:text-white hover:before:bg-violet-200/70">Homepage</a>
               <div className="border-t border-white/10 p-2">
                 <SignOutButton />
               </div>

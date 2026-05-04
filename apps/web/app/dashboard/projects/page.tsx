@@ -66,7 +66,7 @@ export default async function ProjectsPage() {
     <div className="mx-auto max-w-5xl">
       <div className="border-b border-white/10 pb-8">
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-violet-200">// Projects</p>
-        <h1 className="mt-4 font-mono text-4xl text-white">Projects</h1>
+        <h1 className="mt-4 font-mono text-3xl text-white sm:text-4xl">Projects</h1>
           <p className="mt-3 max-w-2xl text-zinc-400">Projects live inside the active workspace: {organization.name}. Your {accountPlan} plan can create {projectLimitLabel.toLowerCase()} projects per workspace.</p>
       </div>
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_0.8fr]">
@@ -104,10 +104,10 @@ export default async function ProjectsPage() {
                     {attachedRepositories.length > 0 ? (
                       <div className="mt-4 space-y-2 border-t border-white/10 pt-4">
                         {attachedRepositories.map((repository) => (
-                          <a key={repository.id} href={repository.url} target="_blank" rel="noreferrer" className="group flex items-center justify-between gap-3 rounded-sm border border-white/10 bg-black/20 px-3 py-2 font-mono text-xs transition hover:border-violet-300/40 hover:text-white">
-                            <span className="truncate text-zinc-300 group-hover:text-white">{repository.owner}/{repository.name}</span>
-                            <span className="shrink-0 uppercase tracking-[0.14em] text-zinc-600">{repository.provider} / {repository.defaultBranch}</span>
-                          </a>
+                      <a key={repository.id} href={repository.url} target="_blank" rel="noreferrer" className="group flex min-w-0 flex-col gap-2 rounded-sm border border-white/10 bg-black/20 px-3 py-2 font-mono text-xs transition hover:border-violet-300/40 hover:text-white sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                        <span className="truncate text-zinc-300 group-hover:text-white">{repository.owner}/{repository.name}</span>
+                        <span className="shrink-0 uppercase tracking-[0.14em] text-zinc-600">{repository.provider} / {repository.defaultBranch}</span>
+                      </a>
                         ))}
                       </div>
                     ) : null}

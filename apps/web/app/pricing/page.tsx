@@ -1,11 +1,30 @@
-import { AnchorButton, Card } from "@commitglow/ui";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
-import { planList, plans, toPlanSlug } from "@/lib/plans";
+import type { Metadata } from "next";
+import { Card } from "@commitglow/ui";
+import { planList } from "@/lib/plans";
 import { isPolarCheckoutConfigured } from "@/lib/polar-billing";
-import { PolarCheckoutButton } from "@/components/polar-checkout-button";
+import type { PaidPlanSlug } from "@/lib/plans";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { PricingCurrentPlanBadge, PricingTierCta } from "@/components/auth-aware-cta";
+import { FAQPageJsonLd } from "@/components/json-ld";
+import { seo } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "Pricing — AI Changelog & Release Notes Plans | CommitGlow",
+  description: "Start free, upgrade when CommitGlow becomes part of how you ship. Compare Starter, Pro, and Team plans for AI release notes, changelogs, and launch posts.",
+  alternates: {
+    canonical: `${seo.siteUrl}/pricing`,
+  },
+  openGraph: {
+    title: "Pricing — AI Changelog & Release Notes Plans | CommitGlow",
+    description: "Start free, upgrade when CommitGlow becomes part of how you ship. Compare Starter, Pro, and Team plans.",
+    url: `${seo.siteUrl}/pricing`,
+  },
+  twitter: {
+    title: "Pricing — AI Changelog & Release Notes Plans | CommitGlow",
+    description: "Start free, upgrade when CommitGlow becomes part of how you ship.",
+  },
+};
 
 const questions = [
   ["Can I use it for free?", "Yes. Starter is designed for trying CommitGlow and shipping small projects."],
@@ -18,6 +37,11 @@ const questions = [
   ["Can I paste commits manually?", "Yes. The product is built around fast manual input first, with deeper repository integrations planned."],
   ["Is my content locked in?", "No. Outputs are markdown-first so you can copy them into GitHub, docs, email, or your own workflow."],
 ];
+
+const faqSchemaItems = questions.map(([question, answer]) => ({
+  question,
+  answer,
+}));
 
 const comparisonRows = [
   ["Monthly generations", "25", "200", "1,000 included, then metered"],
@@ -36,107 +60,71 @@ function CheckIcon() {
   );
 }
 
-function ArrowRightIcon() {
-  return (
-    <svg aria-hidden="true" className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 16 16">
-      <path d="M3 8h10m0 0L9 4m4 4-4 4" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-    </svg>
-  );
-}
+const tierData = planList.map((tier) => {
+  const checkoutSlug = "checkoutSlug" in tier ? (tier.checkoutSlug as PaidPlanSlug | undefined) : undefined;
+  const polarConfigured = checkoutSlug ? isPolarCheckoutConfigured(checkoutSlug) : false;
+  return { tier, checkoutSlug, polarConfigured };
+});
 
-export const dynamic = "force-dynamic";
-
-export default async function PricingPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  const isAuthenticated = Boolean(session);
-  const actionHref = isAuthenticated ? "/dashboard" : "/auth/sign-up";
-  const activePlan = session ? toPlanSlug(session.user.plan) : undefined;
-
+export default function PricingPage() {
   return (
     <main className="min-h-screen overflow-hidden">
-      <SiteHeader isAuthenticated={isAuthenticated} />
+      <FAQPageJsonLd items={faqSchemaItems} />
+      <SiteHeader />
       <section className="mx-auto w-full max-w-7xl px-5 pt-16 sm:px-8 lg:pt-24">
         <div className="border border-white/10 bg-[linear-gradient(rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.055)_1px,transparent_1px)] bg-[size:128px_72px] px-5 py-20 text-center sm:px-8 lg:py-28">
-          <h1 className="mx-auto max-w-4xl font-mono text-4xl leading-tight tracking-[-0.06em] text-white sm:text-6xl">
+          <h1 className="mx-auto max-w-4xl font-mono text-3xl leading-tight tracking-[-0.06em] text-white sm:text-6xl">
             Find a plan for every release workflow.
           </h1>
           <p className="mx-auto mt-5 max-w-2xl font-mono text-sm leading-7 text-zinc-400 sm:text-base">
             Start free. Upgrade when CommitGlow becomes part of how you ship.
           </p>
-          {session && activePlan ? (
-            <p className="mx-auto mt-6 w-fit rounded-full border border-emerald-300/30 bg-emerald-500/10 px-4 py-2 font-mono text-xs text-emerald-100">
-              Current plan: {plans[activePlan].label}
-            </p>
-          ) : null}
+          <PricingCurrentPlanBadge />
         </div>
       </section>
 
       <section id="plans" className="mx-auto grid w-full max-w-7xl overflow-hidden border-x border-b border-white/10 bg-black/20 divide-y divide-white/10 lg:grid-cols-3 lg:divide-x lg:divide-y-0">
-        {planList.map((tier) => {
-          const isCurrentPlan = activePlan === tier.slug;
-          const checkoutSlug = "checkoutSlug" in tier ? tier.checkoutSlug : undefined;
-          const polarConfigured = checkoutSlug ? isPolarCheckoutConfigured(checkoutSlug) : false;
-
-          return (
-            <Card
-              key={tier.slug}
-              className={[
-                "group relative flex min-h-full flex-col rounded-none border-0 bg-black/20 p-7 transition duration-300 hover:-translate-y-1 hover:bg-white/[0.045] hover:shadow-[0_24px_80px_rgba(139,92,246,0.16)] hover:ring-1 hover:ring-violet-300/35 sm:p-8",
-                tier.highlighted ? "bg-white/[0.035]" : "",
-                isCurrentPlan ? "bg-emerald-500/[0.055] shadow-[0_0_42px_rgba(16,185,129,0.14)] hover:shadow-[0_24px_80px_rgba(16,185,129,0.16)] hover:ring-emerald-300/40" : "",
-              ].filter(Boolean).join(" ")}
-            >
-              <div className="absolute right-7 top-0 flex flex-wrap justify-end gap-2">
-                {isCurrentPlan ? (
-                  <span className="rounded-sm border border-emerald-300/40 bg-emerald-500/15 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-100">
-                    Current Plan
-                  </span>
-                ) : null}
-                {tier.highlighted ? (
-                  <span className="rounded-b-sm bg-white px-3 py-1.5 font-mono text-[10px] text-black">
-                    Popular
-                  </span>
-                ) : null}
+        {tierData.map(({ tier, checkoutSlug, polarConfigured }) => (
+          <Card
+            key={tier.slug}
+            className={[
+              "group relative flex min-h-full flex-col rounded-none border-0 bg-black/20 p-7 transition duration-300 hover:-translate-y-1 hover:bg-white/[0.045] hover:shadow-[0_24px_80px_rgba(139,92,246,0.16)] hover:ring-1 hover:ring-violet-300/35 sm:p-8",
+              tier.highlighted ? "bg-white/[0.035]" : "",
+            ].filter(Boolean).join(" ")}
+          >
+            <div className="absolute right-7 top-0 flex flex-wrap justify-end gap-2">
+              {tier.highlighted ? (
+                <span className="rounded-b-sm bg-white px-3 py-1.5 font-mono text-[10px] text-black">
+                  Popular
+                </span>
+              ) : null}
+            </div>
+            <div className="pt-8 font-mono">
+              <h2 className="text-2xl text-white transition-colors duration-300 group-hover:text-violet-100">{tier.label}</h2>
+              <p className="mt-4 min-h-16 text-sm leading-7 text-zinc-400 transition-colors duration-300 group-hover:text-zinc-300">{tier.description}</p>
+              <div className="mt-2 flex items-end gap-2">
+                <span className="text-2xl font-bold tracking-[-0.06em] text-white transition-transform duration-300 group-hover:scale-105">{tier.price}</span>
+                <span className="pb-1 text-sm text-zinc-400">{tier.cadence}</span>
               </div>
-              <div className="pt-8 font-mono">
-                <h2 className="text-2xl text-white transition-colors duration-300 group-hover:text-violet-100">{tier.label}</h2>
-                <p className="mt-4 min-h-16 text-sm leading-7 text-zinc-400 transition-colors duration-300 group-hover:text-zinc-300">{tier.description}</p>
-                <div className="mt-2 flex items-end gap-2">
-                  <span className="text-2xl font-bold tracking-[-0.06em] text-white transition-transform duration-300 group-hover:scale-105">{tier.price}</span>
-                  <span className="pb-1 text-sm text-zinc-400">{tier.cadence}</span>
-                </div>
-                <p className="mt-2 text-xs text-zinc-500">{tier.includedGenerations} generations included</p>
-              </div>
-              {isCurrentPlan ? (
-                <AnchorButton href="/dashboard/settings" variant="secondary" className="group mt-8 w-full rounded-full border-emerald-300/40 bg-emerald-500/10 text-emerald-50 hover:border-emerald-200 hover:bg-emerald-400/15">
-                  <span>Current Plan</span>
-                  <ArrowRightIcon />
-                </AnchorButton>
-              ) : tier.slug === "free" || !isAuthenticated || !checkoutSlug ? (
-                <AnchorButton href={actionHref} variant={tier.highlighted ? "primary" : "secondary"} className="group mt-8 w-full rounded-full hover:shadow-[0_0_28px_rgba(139,92,246,0.22)]">
-                  <span>{tier.slug === "free" ? tier.cta : "Sign In To Upgrade"}</span>
-                  <ArrowRightIcon />
-                </AnchorButton>
-              ) : !polarConfigured ? (
-                <div className="mt-8 rounded-full border border-white/10 bg-white/[0.02] px-5 py-3 text-center font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">
-                  Billing Unavailable
-                </div>
-              ) : (
-                <PolarCheckoutButton slug={checkoutSlug} referenceId={session?.user.id} configured={polarConfigured} highlighted={tier.highlighted}>
-                  {tier.cta}
-                </PolarCheckoutButton>
-              )}
-              <ul className="mt-8 space-y-4 font-mono text-sm leading-6 text-zinc-300">
-                {tier.features.slice(0, 7).map((feature) => (
-                  <li key={feature} className="flex gap-3">
-                    <CheckIcon />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          );
-        })}
+              <p className="mt-2 text-xs text-zinc-500">{tier.includedGenerations} generations included</p>
+            </div>
+            <PricingTierCta
+              tierSlug={tier.slug}
+              checkoutSlug={checkoutSlug}
+              label={tier.cta}
+              highlighted={tier.highlighted}
+              polarConfigured={polarConfigured}
+            />
+            <ul className="mt-8 space-y-4 font-mono text-sm leading-6 text-zinc-300">
+              {tier.features.slice(0, 7).map((feature) => (
+                <li key={feature} className="flex gap-3">
+                  <CheckIcon />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        ))}
       </section>
 
       <section className="mx-auto w-full max-w-7xl border-x border-b border-white/10 px-5 sm:px-8 lg:px-0">
@@ -165,7 +153,7 @@ export default async function PricingPage() {
 
       <section className="mx-auto grid w-full max-w-7xl gap-8 border-x border-b border-white/10 px-5 py-12 sm:px-8 lg:grid-cols-[0.65fr_1fr]">
         <div>
-          <h2 className="font-mono text-4xl leading-tight tracking-[-0.05em] text-white">Frequently asked questions.</h2>
+          <h2 className="font-mono text-3xl leading-tight tracking-[-0.05em] text-white sm:text-4xl">Frequently asked questions.</h2>
         </div>
         <div className="grid gap-4">
           {questions.map(([question, answer]) => (

@@ -59,16 +59,18 @@ function StarIcon() {
 
 export async function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
   const github = await getGitHubStars();
+  const actionLabel = isAuthenticated ? "Dashboard" : "Get Started";
+  const actionHref = isAuthenticated ? "/dashboard" : "/auth/sign-in";
 
   return (
-    <header className="mx-auto flex w-full max-w-7xl items-center justify-between border-b border-white/10 px-5 py-5 font-mono text-xs uppercase tracking-[0.16em] text-zinc-300 sm:px-8">
+    <header className="relative z-30 mx-auto flex w-full max-w-7xl items-center justify-between border-b border-white/10 px-5 py-5 font-mono text-xs uppercase tracking-[0.16em] text-zinc-300 sm:px-8">
       <a href="/" className="text-white">&gt;_ CommitGlow</a>
       <nav className="hidden items-center gap-10 md:flex">
         <a className="text-violet-200" href="/#features">[ Features ]</a>
         <a href="/#how">How it Works</a>
         <a href="/pricing">Pricing</a>
       </nav>
-      <div className="hidden items-center gap-3 sm:flex">
+      <div className="hidden items-center gap-3 md:flex">
         <a
           className="inline-flex items-center gap-2 rounded-sm border border-white/10 bg-black/30 px-4 py-3 text-zinc-300 transition hover:border-violet-300/50 hover:text-white"
           href={github.href}
@@ -78,10 +80,37 @@ export async function SiteHeader({ isAuthenticated = false }: { isAuthenticated?
           <StarIcon />
           <span>{github.stars === null ? "GitHub" : formatStars(github.stars)}</span>
         </a>
-        <AnchorButton href={isAuthenticated ? "/dashboard" : "/auth/sign-in"}>
-          {isAuthenticated ? "Dashboard" : "Get Started"}
+        <AnchorButton href={actionHref}>
+          {actionLabel}
         </AnchorButton>
       </div>
+      <details className="group/menu relative md:hidden">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-sm border border-white/10 bg-black/30 px-4 py-3 text-white transition hover:border-violet-300/50 [&::-webkit-details-marker]:hidden">
+          <span>Menu</span>
+          <span className="text-zinc-600 transition group-open/menu:rotate-180">v</span>
+        </summary>
+        <div className="absolute right-0 top-full z-50 mt-3 w-[calc(100vw-2.5rem)] max-w-sm overflow-hidden rounded-sm border border-violet-300/25 bg-[#050507]/98 shadow-[0_24px_80px_rgba(0,0,0,0.55),0_0_40px_rgba(139,92,246,0.12)] backdrop-blur">
+          <nav className="grid border-b border-white/10" aria-label="Mobile navigation">
+            <a className="px-4 py-4 text-violet-200 transition hover:bg-white/[0.03] hover:text-white" href="/#features">[ Features ]</a>
+            <a className="px-4 py-4 transition hover:bg-white/[0.03] hover:text-white" href="/#how">How it Works</a>
+            <a className="px-4 py-4 transition hover:bg-white/[0.03] hover:text-white" href="/pricing">Pricing</a>
+          </nav>
+          <div className="grid gap-3 p-3">
+            <a
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border border-white/10 bg-black/30 px-4 py-3 text-zinc-300 transition hover:border-violet-300/50 hover:text-white"
+              href={github.href}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <StarIcon />
+              <span>{github.stars === null ? "GitHub" : `${formatStars(github.stars)} Stars`}</span>
+            </a>
+            <AnchorButton href={actionHref} className="w-full">
+              {actionLabel}
+            </AnchorButton>
+          </div>
+        </div>
+      </details>
     </header>
   );
 }

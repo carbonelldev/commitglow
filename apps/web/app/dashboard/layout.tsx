@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { DashboardNav } from "@/components/dashboard-nav";
 import { db } from "@/lib/db";
@@ -7,6 +8,13 @@ import { organizations as organizationTable, projects, repositories } from "@com
 import { asc, count, desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export const dynamic = "force-dynamic";
 
