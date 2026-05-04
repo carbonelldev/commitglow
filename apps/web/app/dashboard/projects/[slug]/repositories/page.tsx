@@ -71,7 +71,7 @@ export default async function ProjectRepositoriesPage({ params }: { params: Prom
           {projectRepositories.length === 0 ? (
             <div className="rounded-sm border border-dashed border-white/10 p-6">
               <p className="font-mono text-xl text-white">No repositories attached.</p>
-              <p className="mt-3 font-mono text-sm leading-7 text-zinc-500">Attach a GitHub repository and sync its commits to prepare changelogs.</p>
+              <p className="mt-3 font-mono text-sm leading-7 text-zinc-500">Attach a GitHub, GitLab, Bitbucket, or Gitea repository and sync commits to prepare changelogs.</p>
             </div>
           ) : (
             <div className="grid gap-3">
@@ -110,7 +110,7 @@ export default async function ProjectRepositoriesPage({ params }: { params: Prom
 
         <Card>
           <h2 className="font-mono text-lg text-white">Attach repository</h2>
-          <p className="mt-3 font-mono text-sm leading-7 text-zinc-500">Search and attach a GitHub repository to {project.name}.</p>
+          <p className="mt-3 font-mono text-sm leading-7 text-zinc-500">Search connected GitHub accounts or paste a public GitLab, Bitbucket, or Gitea repository URL.</p>
           <RepositoryAttachForm projects={[{ id: project.id, name: project.name }]} fixedProjectId={project.id} fixedProjectName={project.name} />
         </Card>
       </div>

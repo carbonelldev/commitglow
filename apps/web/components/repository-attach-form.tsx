@@ -116,7 +116,7 @@ export function RepositoryAttachForm({ projects, fixedProjectId, fixedProjectNam
       <div className="rounded-sm border border-white/10 bg-black/20 p-4">
         <div className="flex flex-col gap-3 sm:flex-row">
           <label className="block min-w-0 flex-1">
-            <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Search GitHub repositories</span>
+            <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Search connected GitHub</span>
             <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search owner, repo, or description" disabled={disabled || lookupPending} />
           </label>
           <div className="flex items-end">
@@ -146,6 +146,7 @@ export function RepositoryAttachForm({ projects, fixedProjectId, fixedProjectNam
                       <p className="truncate font-mono text-sm text-white">{repository.fullName}</p>
                       <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-500">{repository.description || "No description"}</p>
                     </div>
+                    <span className="shrink-0 rounded-sm border border-white/10 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-600">{repository.provider}</span>
                     <span className="shrink-0 rounded-sm border border-white/10 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-600">{repository.isPrivate ? "private" : "public"}</span>
                   </div>
                 </button>
@@ -161,6 +162,7 @@ export function RepositoryAttachForm({ projects, fixedProjectId, fixedProjectNam
         <div className="rounded-sm border border-violet-300/20 bg-violet-500/[0.06] p-4">
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-violet-200">Selected repository</p>
           <p className="mt-2 font-mono text-base text-white">{selectedRepository.fullName}</p>
+          <p className="mt-1 font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">{selectedRepository.provider}</p>
           <label className="mt-4 block">
             <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Branch</span>
             <select name="selectedBranch" value={selectedBranch} onChange={(event) => setSelectedBranch(event.target.value)} className="w-full rounded-sm border border-white/10 bg-black/40 px-4 py-3 font-mono text-sm text-white outline-none transition focus:border-violet-300/70 focus:ring-2 focus:ring-violet-300/20">
@@ -173,10 +175,10 @@ export function RepositoryAttachForm({ projects, fixedProjectId, fixedProjectNam
       ) : null}
 
       <label className="block">
-        <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">GitHub repository</span>
+        <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Repository URL</span>
         {selectedRepository ? <input type="hidden" name="repositoryUrl" value={selectedRepository.url} /> : null}
-        <Input name={selectedRepository ? undefined : "repositoryUrl"} value={selectedRepository?.url ?? query} onChange={(event) => setQuery(event.target.value)} placeholder="Select from search or enter owner/repo" required disabled={disabled} readOnly={Boolean(selectedRepository)} />
-        <span className="mt-2 block text-xs leading-5 text-zinc-600">Connected workspaces can search accessible repositories and choose a branch. Public repositories can still be entered manually.</span>
+        <Input name={selectedRepository ? undefined : "repositoryUrl"} value={selectedRepository?.url ?? query} onChange={(event) => setQuery(event.target.value)} placeholder="https://gitlab.com/group/project or owner/repo" required disabled={disabled} readOnly={Boolean(selectedRepository)} />
+        <span className="mt-2 block text-xs leading-5 text-zinc-600">GitHub search uses connected accounts. Public GitHub, GitLab, Bitbucket, and Gitea URLs can be entered manually.</span>
       </label>
       {selectedRepository ? (
         <button type="button" onClick={() => { setSelectedRepository(null); setBranches([]); setSelectedBranch(""); }} className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500 transition hover:text-white">

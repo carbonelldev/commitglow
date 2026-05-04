@@ -10,9 +10,10 @@ import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-const upcomingProviders = [
-  { provider: "GitLab", detail: "Self-hosted and gitlab.com support planned after GitHub." },
-  { provider: "Bitbucket", detail: "Workspace repository access and release-note generation planned later." }
+const repositoryUrlProviders = [
+  { provider: "GitLab", detail: "Paste public gitlab.com repository URLs. Account login is not required." },
+  { provider: "Bitbucket", detail: "Paste public bitbucket.org repository URLs. Account login is not required." },
+  { provider: "Gitea", detail: "Paste public Gitea repository URLs from reachable HTTPS hosts." }
 ];
 
 const requiredGitHubScopes = ["repo"];
@@ -173,7 +174,7 @@ export default async function ProvidersPage({ searchParams }: { searchParams: Pr
       <div className="border-b border-white/10 pb-8">
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-violet-200">// Providers</p>
         <h1 className="mt-4 font-mono text-4xl text-white">Provider connections</h1>
-        <p className="mt-3 max-w-2xl text-zinc-400">Connect Git providers to the active workspace. These permissions unlock private repository access and future automated commit sync.</p>
+        <p className="mt-3 max-w-2xl text-zinc-400">Connect GitHub accounts for private access, or paste public GitLab, Bitbucket, and Gitea repository URLs directly when attaching repositories.</p>
       </div>
 
       {syncResult ? (
@@ -182,24 +183,32 @@ export default async function ProvidersPage({ searchParams }: { searchParams: Pr
         </div>
       ) : null}
 
-      <div className="mt-8 grid gap-5 md:grid-cols-3">
-        <Card className="relative overflow-hidden hover:border-violet-300/40">
+      <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Card className="relative overflow-hidden p-4 hover:border-violet-300/40">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-200/70 to-transparent" />
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-violet-200">// Available</p>
-          <h2 className="mt-4 font-mono text-2xl text-white">GitHub</h2>
-          <p className="mt-3 font-mono text-sm leading-7 text-zinc-500">Grant explicit repository permissions for private repository access, branch metadata, and future commit sync. GitHub login alone is not counted as a workspace provider.</p>
-          <div className="mt-4 rounded-sm border border-white/10 bg-black/30 p-3 font-mono text-xs leading-5 text-zinc-600">
-            Required permission: <span className="text-zinc-300">repo</span>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-violet-200">Account</p>
+              <h2 className="mt-2 font-mono text-xl text-white">GitHub</h2>
+            </div>
+            <span className="rounded-sm border border-violet-300/20 bg-violet-500/10 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-violet-100">OAuth</span>
           </div>
-          {githubConnected ? <p className="mt-5 font-mono text-sm text-zinc-400">// GitHub repository access is connected.</p> : null}
+          <p className="mt-3 min-h-16 font-mono text-xs leading-5 text-zinc-500">Connect accounts for private repositories, searchable repository picker, branch metadata, and sync.</p>
+          <p className="mt-3 rounded-sm border border-white/10 bg-black/30 px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-500">Scope: <span className="text-zinc-300">repo</span></p>
+          {githubConnected ? <p className="mt-4 font-mono text-xs text-zinc-400">// Connected</p> : null}
           {canConnectAnotherProvider ? <ConnectGitHubButton callbackURL="/dashboard/providers?connect=github" label={githubConnected ? "Connect Another GitHub Account" : "Connect GitHub Repositories"} variant={githubConnected ? "secondary" : "primary"} /> : <p className="mt-5 font-mono text-sm text-zinc-500">// Provider account limit reached.</p>}
         </Card>
-        {upcomingProviders.map((item) => (
-          <Card key={item.provider}>
-            <p className="font-mono text-xs uppercase tracking-[0.18em] text-zinc-600">// Coming Soon</p>
-            <h2 className="mt-4 font-mono text-2xl text-white">{item.provider}</h2>
-            <p className="mt-3 font-mono text-sm leading-7 text-zinc-500">{item.detail}</p>
-            <span className="mt-5 inline-flex rounded-sm border border-white/10 px-3 py-2 font-mono text-xs uppercase tracking-[0.14em] text-zinc-600">Not connected</span>
+        {repositoryUrlProviders.map((item) => (
+          <Card key={item.provider} className="p-4 hover:border-white/10">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-zinc-600">Repo URL</p>
+                <h2 className="mt-2 font-mono text-xl text-white">{item.provider}</h2>
+              </div>
+              <span className="rounded-sm border border-white/10 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-500">Public</span>
+            </div>
+            <p className="mt-3 min-h-16 font-mono text-xs leading-5 text-zinc-500">{item.detail}</p>
+            <span className="mt-4 inline-flex rounded-sm border border-white/10 px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-500">No provider account</span>
           </Card>
         ))}
       </div>
@@ -212,7 +221,7 @@ export default async function ProvidersPage({ searchParams }: { searchParams: Pr
         {connectedProviders.length === 0 ? (
           <div className="rounded-sm border border-dashed border-white/10 p-6">
             <p className="font-mono text-xl text-white">No providers connected.</p>
-            <p className="mt-3 font-mono text-sm leading-7 text-zinc-500">Connect GitHub to make private repository access available to this workspace.</p>
+            <p className="mt-3 font-mono text-sm leading-7 text-zinc-500">Connect GitHub only if this workspace needs private GitHub access or searchable repository picking.</p>
           </div>
         ) : (
           <div className="grid gap-3">

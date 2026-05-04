@@ -3,7 +3,7 @@ import { boolean, index, integer, jsonb, pgEnum, pgTable, text, timestamp, uniqu
 
 export const planEnum = pgEnum("plan", ["free", "pro", "team"]);
 export const organizationRoleEnum = pgEnum("organization_role", ["owner", "admin", "member"]);
-export const providerEnum = pgEnum("provider", ["github", "gitlab", "bitbucket"]);
+export const providerEnum = pgEnum("provider", ["github", "gitlab", "bitbucket", "gitea"]);
 export const outputTypeEnum = pgEnum("output_type", ["release_notes", "changelog", "social_post", "email_update", "update_card"]);
 export const usageEventTypeEnum = pgEnum("usage_event_type", ["generation", "repo_sync", "export"]);
 
