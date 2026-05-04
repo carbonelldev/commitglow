@@ -276,7 +276,13 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
                         <SkeletonLines />
                       </div>
                     ) : (
-                      <Streamdown plugins={{ code }} caret={status === "generating" ? "block" : undefined} isAnimating={status === "generating"}>
+                      <Streamdown
+                        className="commitglow-markdown"
+                        plugins={{ code }}
+                        caret={status === "generating" ? "block" : undefined}
+                        isAnimating={status === "generating"}
+                        shikiTheme={["github-dark", "github-dark"]}
+                      >
                         {output || "// Waiting for output..."}
                       </Streamdown>
                     )}
