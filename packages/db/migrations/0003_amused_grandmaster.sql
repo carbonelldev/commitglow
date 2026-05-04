@@ -1,0 +1,3 @@
+ALTER TABLE "repositories" ADD COLUMN "integration_id" text;--> statement-breakpoint
+ALTER TABLE "repositories" ADD CONSTRAINT "repositories_integration_id_integrations_id_fk" FOREIGN KEY ("integration_id") REFERENCES "public"."integrations"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "repositories_integration_id_idx" ON "repositories" USING btree ("integration_id");

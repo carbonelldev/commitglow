@@ -1,8 +1,10 @@
 import { db } from "@commitglow/db";
 import * as schema from "@commitglow/db/schema";
+import { checkout, polar, portal, usage, webhooks } from "@polar-sh/better-auth";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { env, requireServerEnv } from "./env";
+import { getPolarClient, polarProducts, syncAccountPlanFromPolarPayload } from "./polar-billing";
 
 const socialProviders = {
   ...(env.githubClientId && env.githubClientSecret
@@ -23,6 +25,34 @@ const socialProviders = {
     : {})
 };
 
+const plugins = env.polarAccessToken
+  ? [
+      polar({
+        client: getPolarClient()!,
+        createCustomerOnSignUp: true,
+        use: [
+          checkout({
+            products: polarProducts,
+            successUrl: "/dashboard/billing/success?checkout_id={CHECKOUT_ID}",
+            authenticatedUsersOnly: true
+          }),
+          portal(),
+          usage(),
+          ...(env.polarWebhookSecret
+            ? [
+                webhooks({
+                  secret: env.polarWebhookSecret,
+                  onPayload: async (payload: Record<string, unknown>) => {
+                    await syncAccountPlanFromPolarPayload(payload);
+                  }
+                })
+              ]
+            : [])
+        ]
+      })
+    ]
+  : [];
+
 export const auth = betterAuth({
   secret: requireServerEnv("betterAuthSecret"),
   baseURL: env.betterAuthUrl,
@@ -34,6 +64,7 @@ export const auth = betterAuth({
     enabled: true
   },
   socialProviders,
+  plugins,
   user: {
     additionalFields: {
       plan: {
@@ -42,7 +73,7 @@ export const auth = betterAuth({
         defaultValue: "free",
         input: false
       },
-      stripeCustomerId: {
+      polarCustomerId: {
         type: "string",
         required: false,
         input: false
