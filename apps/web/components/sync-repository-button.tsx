@@ -1,7 +1,8 @@
 "use client";
 
 import { syncRepositoryCommits, type SyncCommitsFormState } from "@/app/dashboard/repositories/actions";
-import { useActionState } from "react";
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useRef } from "react";
 import { useFormStatus } from "react-dom";
 
 const initialState: SyncCommitsFormState = {
@@ -24,11 +25,26 @@ function SyncSubmitButton() {
   );
 }
 
-export function SyncRepositoryButton({ repositoryId }: { repositoryId: string }) {
+export function SyncRepositoryButton({ repositoryId, onSynced }: { repositoryId: string; onSynced?: (state: SyncCommitsFormState) => void | Promise<void> }) {
+  const router = useRouter();
+  const onSyncedRef = useRef(onSynced);
   const [state, formAction] = useActionState<SyncCommitsFormState, FormData>(
     async () => syncRepositoryCommits(repositoryId),
     initialState
   );
+
+  useEffect(() => {
+    onSyncedRef.current = onSynced;
+  }, [onSynced]);
+
+  useEffect(() => {
+    if (state.status !== "success") {
+      return;
+    }
+
+    router.refresh();
+    void onSyncedRef.current?.(state);
+  }, [router, state]);
 
   return (
     <div>

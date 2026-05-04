@@ -13,7 +13,8 @@ export const env = {
   polarWebhookSecret: process.env.POLAR_WEBHOOK_SECRET,
   polarServer: process.env.POLAR_SERVER,
   polarProProductId: process.env.POLAR_PRO_PRODUCT_ID,
-  polarTeamProductId: process.env.POLAR_TEAM_PRODUCT_ID
+  polarTeamProductId: process.env.POLAR_TEAM_PRODUCT_ID,
+  aiGatewayApiKey: process.env.AI_GATEWAY_API_KEY
 };
 
 export function requireServerEnv(name: keyof typeof env) {

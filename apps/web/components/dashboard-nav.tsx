@@ -253,7 +253,7 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
               <p className="mt-1 truncate font-mono text-xs text-zinc-600">/{activeProject.slug}</p>
             </div>
 
-            <nav className="flex gap-1 lg:mt-5 lg:block lg:space-y-1" aria-label="Project navigation">
+            <nav className="flex gap-1 lg:mt-5 lg:block lg:space-y-1 lg:mb-3" aria-label="Project navigation">
               <a href={`/dashboard/projects/${activeProject.slug}`} className={linkClass(pathname === `/dashboard/projects/${activeProject.slug}`)}>
                 <Icon name="chart" />
                 <span className="truncate font-medium">Overview</span>
@@ -282,7 +282,7 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
               ) : (
                 <div className="space-y-1">
                   {activeProject.repositories.map((repository) => (
-                    <a key={repository.id} href={`/dashboard/projects/${activeProject.slug}/repositories`} className="group flex items-center gap-2 rounded-sm px-2 py-2 font-mono text-[11px] uppercase tracking-[0.12em] text-zinc-600 transition hover:bg-white/[0.03] hover:text-white" title={`${repository.owner}/${repository.name}`}>
+                    <a key={repository.id} href={`/dashboard/projects/${activeProject.slug}/repositories/${repository.id}`} className="group flex items-center gap-2 rounded-sm px-2 py-2 font-mono text-[11px] uppercase tracking-[0.12em] text-zinc-600 transition hover:bg-white/[0.03] hover:text-white" title={`${repository.owner}/${repository.name}`}>
                       <Icon name="repo" />
                       <span className="truncate">{repository.owner}/{repository.name}</span>
                     </a>
@@ -335,7 +335,7 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
                       {project.repositories.length > 0 ? (
                         <div className="ml-5 border-l border-white/10 pl-3">
                           {project.repositories.map((repository) => (
-                            <a key={repository.id} href={`/dashboard/projects/${project.slug}/repositories`} className="group flex items-center gap-2 rounded-sm px-2 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-zinc-600 transition hover:bg-white/[0.03] hover:text-white" title={`${repository.owner}/${repository.name}`}>
+                            <a key={repository.id} href={`/dashboard/projects/${project.slug}/repositories/${repository.id}`} className="group flex items-center gap-2 rounded-sm px-2 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-zinc-600 transition hover:bg-white/[0.03] hover:text-white" title={`${repository.owner}/${repository.name}`}>
                               <Icon name="repo" />
                               <span className="truncate">{repository.owner}/{repository.name}</span>
                             </a>
