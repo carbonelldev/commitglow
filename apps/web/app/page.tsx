@@ -1,6 +1,7 @@
 import { AnchorButton, Card } from "@commitglow/ui";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
+import { billingPrinciples, plans, toPlanSlug } from "@/lib/plans";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { TerminalPreview } from "@/components/terminal-preview";
@@ -40,6 +41,8 @@ const steps = [
   ],
 ];
 
+const pricingNotes = ["Starter: 2 workspaces", "Pro: multiple Git accounts", "Team: shared release workflows"];
+
 function PromptIcon() {
   return (
     <span aria-hidden="true" className="font-mono text-violet-100">
@@ -72,6 +75,7 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   const session = await auth.api.getSession({ headers: await headers() });
   const isAuthenticated = Boolean(session);
+  const activePlan = session ? toPlanSlug(session.user.plan) : undefined;
 
   return (
     <main className="min-h-screen overflow-hidden">
@@ -224,6 +228,17 @@ export default async function Home() {
             <span>{isAuthenticated ? "Dashboard" : "Get Started"}</span>
             <ArrowRightIcon />
           </AnchorButton>
+          </div>
+          {activePlan ? (
+            <div className="mt-6 w-fit rounded-sm border border-emerald-300/30 bg-emerald-500/10 px-3 py-2 font-mono text-xs uppercase tracking-[0.16em] text-emerald-100">
+              Current plan: {plans[activePlan].label}
+            </div>
+          ) : null}
+          <div className="mt-8 grid gap-2 font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">
+            {pricingNotes.map((note) => <span key={note}>{note}</span>)}
+          </div>
+          <div className="mt-6 grid gap-2 font-mono text-xs leading-6 text-zinc-500">
+            {billingPrinciples.slice(0, 3).map((principle) => <span key={principle}>// {principle}</span>)}
           </div>
         </div>
         <div className="rounded-md border border-white/10 bg-black/30 p-5 font-mono text-sm text-zinc-300">

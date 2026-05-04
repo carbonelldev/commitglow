@@ -1,6 +1,9 @@
 import { db } from "@/lib/db";
 import { organizationMembers, organizations } from "@commitglow/db/schema";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
+import { cookies } from "next/headers";
+
+export const activeOrganizationCookie = "commitglow_active_org";
 
 type SessionUser = {
   id: string;
@@ -8,7 +11,7 @@ type SessionUser = {
   email: string;
 };
 
-function slugify(value: string) {
+export function slugify(value: string) {
   return value
     .trim()
     .toLowerCase()
@@ -17,19 +20,28 @@ function slugify(value: string) {
     .slice(0, 48);
 }
 
-export async function getOrCreateDefaultOrganization(user: SessionUser) {
-  const [membership] = await db
+export async function getUserOrganizations(userId: string) {
+  return db
     .select({
-      organization: organizations
+      id: organizations.id,
+      name: organizations.name,
+      slug: organizations.slug,
+      plan: organizations.plan,
+      isPersonal: organizations.isPersonal,
+      role: organizationMembers.role,
+      createdAt: organizations.createdAt
     })
     .from(organizationMembers)
     .innerJoin(organizations, eq(organizationMembers.organizationId, organizations.id))
-    .where(eq(organizationMembers.userId, user.id))
-    .orderBy(asc(organizationMembers.createdAt))
-    .limit(1);
+    .where(eq(organizationMembers.userId, userId))
+    .orderBy(asc(organizationMembers.createdAt));
+}
 
-  if (membership) {
-    return membership.organization;
+export async function getOrCreateDefaultOrganization(user: SessionUser) {
+  const memberships = await getUserOrganizations(user.id);
+
+  if (memberships[0]) {
+    return memberships[0];
   }
 
   const organizationId = crypto.randomUUID();
@@ -55,5 +67,32 @@ export async function getOrCreateDefaultOrganization(user: SessionUser) {
     role: "owner"
   });
 
-  return organization;
+  return { ...organization, role: "owner" as const };
+}
+
+export async function getActiveOrganization(user: SessionUser) {
+  await getOrCreateDefaultOrganization(user);
+
+  const memberships = await getUserOrganizations(user.id);
+  const requestedOrganizationId = (await cookies()).get(activeOrganizationCookie)?.value;
+  const active = memberships.find((membership) => membership.id === requestedOrganizationId) ?? memberships[0];
+
+  if (!active) {
+    throw new Error("Unable to resolve active organization.");
+  }
+
+  return {
+    active,
+    organizations: memberships
+  };
+}
+
+export async function userCanAccessOrganization(userId: string, organizationId: string) {
+  const [membership] = await db
+    .select({ id: organizationMembers.id })
+    .from(organizationMembers)
+    .where(and(eq(organizationMembers.userId, userId), eq(organizationMembers.organizationId, organizationId)))
+    .limit(1);
+
+  return Boolean(membership);
 }

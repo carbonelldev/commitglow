@@ -14,7 +14,7 @@ export const user = pgTable("user", {
   emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
   plan: planEnum("plan").notNull().default("free"),
-  stripeCustomerId: text("stripe_customer_id"),
+  polarCustomerId: text("stripe_customer_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow()
 });
@@ -63,7 +63,7 @@ export const organizations = pgTable(
     slug: text("slug").notNull(),
     ownerId: text("owner_id").notNull().references(() => user.id, { onDelete: "cascade" }),
     plan: planEnum("plan").notNull().default("free"),
-    stripeCustomerId: text("stripe_customer_id"),
+    polarCustomerId: text("stripe_customer_id"),
     isPersonal: boolean("is_personal").notNull().default(false),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow()
@@ -131,14 +131,19 @@ export const repoConnections = pgTable(
   {
     id: text("id").primaryKey(),
     userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id").references(() => organizations.id, { onDelete: "cascade" }),
     provider: providerEnum("provider").notNull().default("github"),
     providerAccountId: text("provider_account_id"),
+    providerAccountName: text("provider_account_name"),
     accessTokenRef: text("access_token_ref"),
     scopes: text("scopes"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow()
   },
-  (table) => [index("repo_connections_user_id_idx").on(table.userId)]
+  (table) => [
+    index("repo_connections_user_id_idx").on(table.userId),
+    index("repo_connections_organization_id_idx").on(table.organizationId)
+  ]
 );
 
 export const commits = pgTable(
@@ -193,15 +198,20 @@ export const integrations = pgTable(
   {
     id: text("id").primaryKey(),
     userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id").references(() => organizations.id, { onDelete: "cascade" }),
     provider: providerEnum("provider").notNull(),
     providerAccountId: text("provider_account_id"),
+    providerAccountName: text("provider_account_name"),
     accessTokenRef: text("access_token_ref"),
     refreshTokenRef: text("refresh_token_ref"),
     metadata: jsonb("metadata"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow()
   },
-  (table) => [index("integrations_user_id_idx").on(table.userId)]
+  (table) => [
+    index("integrations_user_id_idx").on(table.userId),
+    index("integrations_organization_id_idx").on(table.organizationId)
+  ]
 );
 
 export const usageEvents = pgTable(

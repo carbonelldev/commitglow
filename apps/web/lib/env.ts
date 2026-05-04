@@ -5,7 +5,12 @@ export const env = {
   googleClientId: process.env.GOOGLE_CLIENT_ID,
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
   githubClientId: process.env.GITHUB_CLIENT_ID,
-  githubClientSecret: process.env.GITHUB_CLIENT_SECRET
+  githubClientSecret: process.env.GITHUB_CLIENT_SECRET,
+  polarAccessToken: process.env.POLAR_ACCESS_TOKEN,
+  polarWebhookSecret: process.env.POLAR_WEBHOOK_SECRET,
+  polarServer: process.env.POLAR_SERVER,
+  polarProProductId: process.env.POLAR_PRO_PRODUCT_ID,
+  polarTeamProductId: process.env.POLAR_TEAM_PRODUCT_ID
 };
 
 export function requireServerEnv(name: keyof typeof env) {

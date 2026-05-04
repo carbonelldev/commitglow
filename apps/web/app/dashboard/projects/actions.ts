@@ -2,8 +2,10 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { getOrCreateDefaultOrganization } from "@/lib/organizations";
+import { getActiveOrganization } from "@/lib/organizations";
+import { getProjectLimit, toPlanSlug } from "@/lib/plans";
 import { projects } from "@commitglow/db/schema";
+import { count, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
@@ -41,7 +43,17 @@ export async function createProject(_: ProjectFormState, formData: FormData): Pr
 
   const id = crypto.randomUUID();
   const baseSlug = slugify(name) || "project";
-  const organization = await getOrCreateDefaultOrganization(session.user);
+  const { active: organization } = await getActiveOrganization(session.user);
+  const accountPlan = toPlanSlug(session.user.plan);
+  const projectLimit = getProjectLimit(accountPlan);
+
+  if (projectLimit !== null) {
+    const [projectCount] = await db.select({ value: count() }).from(projects).where(eq(projects.organizationId, organization.id));
+
+    if ((projectCount?.value ?? 0) >= projectLimit) {
+      return { status: "error", message: `${accountPlan.toUpperCase()} workspaces are limited to ${projectLimit} projects. Upgrade to create more.` };
+    }
+  }
 
   await db.insert(projects).values({
     id,

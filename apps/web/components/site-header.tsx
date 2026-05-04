@@ -67,14 +67,21 @@ export async function SiteHeader({ isAuthenticated = false }: { isAuthenticated?
         <a className="text-violet-200" href="/#features">[ Features ]</a>
         <a href="/#how">How it Works</a>
         <a href="/pricing">Pricing</a>
-        <a className="inline-flex items-center gap-2" href={github.href} target="_blank" rel="noreferrer">
-          <StarIcon />
-          <span>{github.stars === null ? "GitHub" : `${formatStars(github.stars)} Stars`}</span>
-        </a>
       </nav>
-      <AnchorButton href={isAuthenticated ? "/dashboard" : "/auth/sign-in"} className="hidden sm:inline-flex">
-        {isAuthenticated ? "Dashboard" : "Get Started"}
-      </AnchorButton>
+      <div className="hidden items-center gap-3 sm:flex">
+        <a
+          className="inline-flex items-center gap-2 rounded-sm border border-white/10 bg-black/30 px-4 py-3 text-zinc-300 transition hover:border-violet-300/50 hover:text-white"
+          href={github.href}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <StarIcon />
+          <span>{github.stars === null ? "GitHub" : formatStars(github.stars)}</span>
+        </a>
+        <AnchorButton href={isAuthenticated ? "/dashboard" : "/auth/sign-in"}>
+          {isAuthenticated ? "Dashboard" : "Get Started"}
+        </AnchorButton>
+      </div>
     </header>
   );
 }

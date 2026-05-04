@@ -7,7 +7,11 @@ const mono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], variable: 
 
 export const metadata: Metadata = {
   title: "CommitGlow",
-  description: "Open-source changelog and release-note generator for developers."
+  description: "Open-source changelog and release-note generator for developers.",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/favicon.ico", sizes: "any" }]
+  }
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
