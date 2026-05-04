@@ -3,6 +3,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getActiveOrganization } from "@/lib/organizations";
+import { decryptProviderToken } from "@/lib/provider-token-vault";
 import { account, commits, integrations, projects, repositories } from "@commitglow/db/schema";
 import { and, desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -24,7 +25,7 @@ export type GitHubRepositorySearchResult = {
   description: string | null;
 };
 
-type GitProvider = "github" | "gitlab" | "bitbucket" | "gitea";
+export type GitProvider = "github" | "gitlab" | "bitbucket" | "gitea";
 
 type ParsedGitRepository = {
   provider: GitProvider;
@@ -39,9 +40,20 @@ type GitRepositoryLookup = ParsedGitRepository & {
   isPrivate: boolean;
 };
 
-type WorkspaceGitHubAuth = {
+type WorkspaceProviderAuth = {
+  provider: GitProvider;
   integrationId: string;
   accessToken: string;
+  baseUrl?: string;
+};
+
+const searchableProviders = ["github", "gitlab", "bitbucket", "gitea"] as const;
+
+const requiredProviderScopes: Record<(typeof searchableProviders)[number], string[]> = {
+  github: ["repo"],
+  gitlab: ["read_api"],
+  bitbucket: ["repository"],
+  gitea: ["repo"]
 };
 
 function isValidPathSegment(value: string) {
@@ -133,8 +145,10 @@ function parseGitRepositoryReference(provider: GitProvider, owner: string, name:
   };
 }
 
-function hasRepositoryScope(value: string | null | undefined) {
-  return (value ?? "").split(/[\s,]+/).includes("repo");
+function hasRepositoryScope(provider: GitProvider, value: string | null | undefined) {
+  const scopes = new Set((value ?? "").split(/[\s,]+/).filter(Boolean));
+
+  return requiredProviderScopes[provider].every((scope) => scopes.has(scope));
 }
 
 function isExplicitProviderConnection(metadata: unknown) {
@@ -195,6 +209,34 @@ function githubHeaders(accessToken?: string | null): HeadersInit {
   };
 }
 
+function providerHeaders(provider: GitProvider, accessToken?: string | null): HeadersInit {
+  if (provider === "github") {
+    return githubHeaders(accessToken);
+  }
+
+  if (provider === "gitlab") {
+    return {
+      Accept: "application/json",
+      "User-Agent": "CommitGlow",
+      ...(accessToken ? { "PRIVATE-TOKEN": accessToken } : {})
+    };
+  }
+
+  if (provider === "bitbucket") {
+    return {
+      Accept: "application/json",
+      "User-Agent": "CommitGlow",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
+    };
+  }
+
+  return {
+    Accept: "application/json",
+    "User-Agent": "CommitGlow",
+    ...(accessToken ? { Authorization: `token ${accessToken}` } : {})
+  };
+}
+
 async function fetchGitHubPages(initialUrl: string, accessToken: string, maxPages = 10) {
   return fetchJsonArrayPages(initialUrl, githubHeaders(accessToken), maxPages);
 }
@@ -215,34 +257,46 @@ async function fetchJsonObject(url: string, headers: HeadersInit) {
   return { ok: payload && typeof payload === "object" && !Array.isArray(payload), inaccessible: false, status: response.status, data: payload as Record<string, unknown> };
 }
 
-async function getWorkspaceGitHubAuths(organizationId: string): Promise<WorkspaceGitHubAuth[]> {
+async function getWorkspaceProviderAuths(organizationId: string, provider?: GitProvider): Promise<WorkspaceProviderAuth[]> {
   const workspaceIntegrations = await db
-    .select({ id: integrations.id, userId: integrations.userId, providerAccountId: integrations.providerAccountId, metadata: integrations.metadata, updatedAt: integrations.updatedAt })
+    .select({ id: integrations.id, userId: integrations.userId, provider: integrations.provider, providerAccountId: integrations.providerAccountId, accessTokenRef: integrations.accessTokenRef, metadata: integrations.metadata, updatedAt: integrations.updatedAt })
     .from(integrations)
-    .where(and(eq(integrations.organizationId, organizationId), eq(integrations.provider, "github")))
+    .where(provider ? and(eq(integrations.organizationId, organizationId), eq(integrations.provider, provider)) : eq(integrations.organizationId, organizationId))
     .orderBy(desc(integrations.updatedAt));
-  const explicitIntegrations = workspaceIntegrations.filter((item) => isExplicitProviderConnection(item.metadata) && item.providerAccountId);
-  const auths: WorkspaceGitHubAuth[] = [];
+  const explicitIntegrations = workspaceIntegrations.filter((item) => searchableProviders.includes(item.provider) && isExplicitProviderConnection(item.metadata) && item.providerAccountId);
+  const auths: WorkspaceProviderAuth[] = [];
 
   for (const integration of explicitIntegrations) {
-    const [githubAccount] = await db
-      .select({ accessToken: account.accessToken, scope: account.scope })
-      .from(account)
-      .where(and(eq(account.userId, integration.userId), eq(account.providerId, "github"), eq(account.accountId, integration.providerAccountId!)))
-      .limit(1);
+    const integrationProvider = integration.provider as GitProvider;
+    const storedToken = decryptProviderToken(integration.accessTokenRef);
 
-    if (!githubAccount?.accessToken || !hasRepositoryScope(githubAccount.scope)) {
+    if (storedToken) {
+      auths.push({ provider: integrationProvider, integrationId: integration.id, accessToken: storedToken.token, baseUrl: storedToken.baseUrl });
       continue;
     }
 
-    auths.push({ integrationId: integration.id, accessToken: githubAccount.accessToken });
+    if (integrationProvider !== "github") {
+      continue;
+    }
+
+    const [providerAccount] = await db
+      .select({ accessToken: account.accessToken, scope: account.scope })
+      .from(account)
+      .where(and(eq(account.userId, integration.userId), eq(account.providerId, integrationProvider), eq(account.accountId, integration.providerAccountId!)))
+      .limit(1);
+
+    if (!providerAccount?.accessToken || !hasRepositoryScope(integrationProvider, providerAccount.scope)) {
+      continue;
+    }
+
+    auths.push({ provider: integrationProvider, integrationId: integration.id, accessToken: providerAccount.accessToken });
   }
 
   return auths;
 }
 
-async function getWorkspaceGitHubAuth(organizationId: string, integrationId?: string | null) {
-  const auths = await getWorkspaceGitHubAuths(organizationId);
+async function getWorkspaceProviderAuth(organizationId: string, provider: GitProvider, integrationId?: string | null) {
+  const auths = await getWorkspaceProviderAuths(organizationId, provider);
 
   if (integrationId) {
     return auths.find((auth) => auth.integrationId === integrationId) ?? null;
@@ -252,7 +306,7 @@ async function getWorkspaceGitHubAuth(organizationId: string, integrationId?: st
 }
 
 async function findGitHubAuthForRepository(organizationId: string, parsed: ParsedGitRepository) {
-  const auths = await getWorkspaceGitHubAuths(organizationId);
+  const auths = await getWorkspaceProviderAuths(organizationId, "github");
 
   for (const githubAuth of auths) {
     const lookup = await lookupGitRepository(parsed, githubAuth.accessToken);
@@ -264,6 +318,36 @@ async function findGitHubAuthForRepository(organizationId: string, parsed: Parse
 
   if (auths.length > 0) {
     return { githubAuth: auths[0], lookup: await lookupGitRepository(parsed, auths[0].accessToken) };
+  }
+
+  return { githubAuth: null, lookup: await lookupGitRepository(parsed) };
+}
+
+async function findProviderAuthForRepository(organizationId: string, parsed: ParsedGitRepository) {
+  if (parsed.provider === "github") {
+    return findGitHubAuthForRepository(organizationId, parsed);
+  }
+
+  const auths = await getWorkspaceProviderAuths(organizationId, parsed.provider);
+
+  for (const providerAuth of auths) {
+    if (parsed.provider === "gitea" && providerAuth.baseUrl !== parsed.apiBaseUrl) {
+      continue;
+    }
+
+    const lookup = await lookupGitRepository(parsed, providerAuth.accessToken);
+
+    if (lookup.repository) {
+      return { githubAuth: providerAuth, lookup };
+    }
+  }
+
+  if (auths.length > 0) {
+    const auth = parsed.provider === "gitea" ? auths.find((item) => item.baseUrl === parsed.apiBaseUrl) : auths[0];
+
+    if (auth) {
+      return { githubAuth: auth, lookup: await lookupGitRepository(parsed, auth.accessToken) };
+    }
   }
 
   return { githubAuth: null, lookup: await lookupGitRepository(parsed) };
@@ -287,7 +371,7 @@ async function listRepositoryBranches(repository: ParsedGitRepository, accessTok
   }
 
   if (repository.provider === "gitlab") {
-    const response = await fetchJsonArrayPages(`https://gitlab.com/api/v4/projects/${getGitLabProjectPath(repository)}/repository/branches?per_page=100`, { Accept: "application/json", "User-Agent": "CommitGlow" }, 10);
+    const response = await fetchJsonArrayPages(`https://gitlab.com/api/v4/projects/${getGitLabProjectPath(repository)}/repository/branches?per_page=100`, providerHeaders("gitlab", accessToken), 10);
 
     return response.ok ? response.items.flatMap((branch) => (typeof branch.name === "string" ? [branch.name] : [])) : [];
   }
@@ -298,7 +382,7 @@ async function listRepositoryBranches(repository: ParsedGitRepository, accessTok
     let page = 0;
 
     while (nextUrl && page < 10) {
-      const result = await fetchJsonObject(nextUrl, { Accept: "application/json", "User-Agent": "CommitGlow" });
+      const result = await fetchJsonObject(nextUrl, providerHeaders("bitbucket", accessToken));
 
       if (!result.ok || !result.data) {
         break;
@@ -313,7 +397,7 @@ async function listRepositoryBranches(repository: ParsedGitRepository, accessTok
     return branches;
   }
 
-  const response = await fetchJsonArrayPages(`${getGiteaApiBase(repository)}/api/v1/repos/${repository.owner}/${repository.name}/branches?limit=100`, { Accept: "application/json", "User-Agent": "CommitGlow" }, 10);
+  const response = await fetchJsonArrayPages(`${getGiteaApiBase(repository)}/api/v1/repos/${repository.owner}/${repository.name}/branches?limit=100`, providerHeaders("gitea", accessToken), 10);
 
   return response.ok ? response.items.flatMap((branch) => (typeof branch.name === "string" ? [branch.name] : [])) : [];
 }
@@ -332,7 +416,7 @@ async function listRepositoryCommits(repository: ParsedGitRepository, branch: st
   }
 
   if (repository.provider === "gitlab") {
-    return fetchJsonArrayPages(`https://gitlab.com/api/v4/projects/${getGitLabProjectPath(repository)}/repository/commits?ref_name=${encodeURIComponent(branch)}&per_page=100`, { Accept: "application/json", "User-Agent": "CommitGlow" }, 5);
+    return fetchJsonArrayPages(`https://gitlab.com/api/v4/projects/${getGitLabProjectPath(repository)}/repository/commits?ref_name=${encodeURIComponent(branch)}&per_page=100`, providerHeaders("gitlab", accessToken), 5);
   }
 
   if (repository.provider === "bitbucket") {
@@ -341,7 +425,7 @@ async function listRepositoryCommits(repository: ParsedGitRepository, branch: st
     let page = 0;
 
     while (nextUrl && page < 5) {
-      const result = await fetchJsonObject(nextUrl, { Accept: "application/json", "User-Agent": "CommitGlow" });
+      const result = await fetchJsonObject(nextUrl, providerHeaders("bitbucket", accessToken));
 
       if (!result.ok || !result.data) {
         return { ok: false, status: result.status, items };
@@ -356,7 +440,7 @@ async function listRepositoryCommits(repository: ParsedGitRepository, branch: st
     return { ok: true, status: 200, items };
   }
 
-  return fetchJsonArrayPages(`${getGiteaApiBase(repository)}/api/v1/repos/${repository.owner}/${repository.name}/commits?sha=${encodeURIComponent(branch)}&limit=100`, { Accept: "application/json", "User-Agent": "CommitGlow" }, 5);
+  return fetchJsonArrayPages(`${getGiteaApiBase(repository)}/api/v1/repos/${repository.owner}/${repository.name}/commits?sha=${encodeURIComponent(branch)}&limit=100`, providerHeaders("gitea", accessToken), 5);
 }
 
 async function lookupGitRepository(parsed: ParsedGitRepository, accessToken?: string | null): Promise<{ repository: GitRepositoryLookup | null; inaccessible: boolean }> {
@@ -365,11 +449,11 @@ async function lookupGitRepository(parsed: ParsedGitRepository, accessToken?: st
   if (parsed.provider === "github") {
     result = await fetchJsonObject(`https://api.github.com/repos/${parsed.owner}/${parsed.name}`, githubHeaders(accessToken));
   } else if (parsed.provider === "gitlab") {
-    result = await fetchJsonObject(`https://gitlab.com/api/v4/projects/${getGitLabProjectPath(parsed)}`, { Accept: "application/json", "User-Agent": "CommitGlow" });
+    result = await fetchJsonObject(`https://gitlab.com/api/v4/projects/${getGitLabProjectPath(parsed)}`, providerHeaders("gitlab", accessToken));
   } else if (parsed.provider === "bitbucket") {
-    result = await fetchJsonObject(`https://api.bitbucket.org/2.0/repositories/${parsed.owner}/${parsed.name}`, { Accept: "application/json", "User-Agent": "CommitGlow" });
+    result = await fetchJsonObject(`https://api.bitbucket.org/2.0/repositories/${parsed.owner}/${parsed.name}`, providerHeaders("bitbucket", accessToken));
   } else {
-    result = await fetchJsonObject(`${getGiteaApiBase(parsed)}/api/v1/repos/${parsed.owner}/${parsed.name}`, { Accept: "application/json", "User-Agent": "CommitGlow" });
+    result = await fetchJsonObject(`${getGiteaApiBase(parsed)}/api/v1/repos/${parsed.owner}/${parsed.name}`, providerHeaders("gitea", accessToken));
   }
 
   if (!result.ok || !result.data) {
@@ -446,40 +530,135 @@ export async function searchGitHubRepositories(query: string): Promise<{ status:
   }
 
   const { active: organization } = await getActiveOrganization(session.user);
-  const githubAuths = await getWorkspaceGitHubAuths(organization.id);
+  const providerAuths = await getWorkspaceProviderAuths(organization.id);
 
-  if (githubAuths.length === 0) {
-    return { status: "error", message: "Connect GitHub repository access to this workspace first.", repositories: [] };
+  if (providerAuths.length === 0) {
+    return { status: "error", message: "Connect a Git provider account to this workspace first.", repositories: [] };
   }
 
   const normalizedQuery = query.trim().toLowerCase().slice(0, 80);
   const repositoryMap = new Map<string, GitHubRepositorySearchResult>();
 
-  for (const githubAuth of githubAuths) {
-    const response = await fetchGitHubPages("https://api.github.com/user/repos?affiliation=owner,collaborator,organization_member&visibility=all&sort=updated&per_page=100", githubAuth.accessToken);
+  for (const providerAuth of providerAuths) {
+    if (providerAuth.provider === "github") {
+      const response = await fetchGitHubPages("https://api.github.com/user/repos?affiliation=owner,collaborator,organization_member&visibility=all&sort=updated&per_page=100", providerAuth.accessToken);
 
-    if (!response.ok) {
-      continue;
-    }
-
-    for (const repository of response.items) {
-      const fullName = typeof repository.full_name === "string" ? repository.full_name : "";
-      const owner = repository.owner && typeof repository.owner === "object" && typeof (repository.owner as Record<string, unknown>).login === "string" ? String((repository.owner as Record<string, unknown>).login) : fullName.split("/")[0];
-      const name = typeof repository.name === "string" ? repository.name : fullName.split("/")[1];
-      const url = typeof repository.html_url === "string" ? repository.html_url : owner && name ? `https://github.com/${owner}/${name}` : "";
-      const defaultBranch = typeof repository.default_branch === "string" ? repository.default_branch : "main";
-      const description = typeof repository.description === "string" ? repository.description : null;
-
-      if (!owner || !name || !url) {
+      if (!response.ok) {
         continue;
       }
 
-      repositoryMap.set(`${owner}/${name}`.toLowerCase(), { provider: "github", owner, name, fullName: `${owner}/${name}`, url, defaultBranch, isPrivate: repository.private === true, description });
+      for (const repository of response.items) {
+        const fullName = typeof repository.full_name === "string" ? repository.full_name : "";
+        const owner = repository.owner && typeof repository.owner === "object" && typeof (repository.owner as Record<string, unknown>).login === "string" ? String((repository.owner as Record<string, unknown>).login) : fullName.split("/")[0];
+        const name = typeof repository.name === "string" ? repository.name : fullName.split("/")[1];
+        const url = typeof repository.html_url === "string" ? repository.html_url : owner && name ? `https://github.com/${owner}/${name}` : "";
+        const defaultBranch = typeof repository.default_branch === "string" ? repository.default_branch : "main";
+        const description = typeof repository.description === "string" ? repository.description : null;
+
+        if (!owner || !name || !url) {
+          continue;
+        }
+
+        repositoryMap.set(`github:${owner}/${name}`.toLowerCase(), { provider: "github", owner, name, fullName: `${owner}/${name}`, url, defaultBranch, isPrivate: repository.private === true, description });
+      }
+
+      continue;
+    }
+
+    if (providerAuth.provider === "gitlab") {
+      const response = await fetchJsonArrayPages("https://gitlab.com/api/v4/projects?membership=true&simple=true&per_page=100&order_by=last_activity_at", providerHeaders("gitlab", providerAuth.accessToken), 10);
+
+      if (!response.ok) {
+        continue;
+      }
+
+      for (const repository of response.items) {
+        const path = typeof repository.path_with_namespace === "string" ? repository.path_with_namespace : "";
+        const parts = path.split("/");
+        const name = parts.at(-1) ?? "";
+        const owner = parts.slice(0, -1).join("/");
+        const url = typeof repository.web_url === "string" ? repository.web_url : owner && name ? `https://gitlab.com/${owner}/${name}` : "";
+        const defaultBranch = typeof repository.default_branch === "string" ? repository.default_branch : "main";
+        const description = typeof repository.description === "string" ? repository.description : null;
+
+        if (!owner || !name || !url) {
+          continue;
+        }
+
+        repositoryMap.set(`gitlab:${owner}/${name}`.toLowerCase(), { provider: "gitlab", owner, name, fullName: `${owner}/${name}`, url, defaultBranch, isPrivate: repository.visibility === "private", description });
+      }
+
+      continue;
+    }
+
+    if (providerAuth.provider === "gitea") {
+      if (!providerAuth.baseUrl) {
+        continue;
+      }
+
+      const search = encodeURIComponent(normalizedQuery || "");
+      const response = await fetchJsonObject(`${providerAuth.baseUrl}/api/v1/repos/search?limit=50${search ? `&q=${search}` : ""}`, providerHeaders("gitea", providerAuth.accessToken));
+
+      if (!response.ok || !response.data) {
+        continue;
+      }
+
+      const values = Array.isArray(response.data.data) ? (response.data.data as Array<Record<string, unknown>>) : [];
+
+      for (const repository of values) {
+        const fullName = typeof repository.full_name === "string" ? repository.full_name : "";
+        const [owner, name] = fullName.split("/");
+        const url = typeof repository.html_url === "string" ? repository.html_url : owner && name ? `${providerAuth.baseUrl}/${owner}/${name}` : "";
+        const defaultBranch = typeof repository.default_branch === "string" ? repository.default_branch : "main";
+        const description = typeof repository.description === "string" ? repository.description : null;
+
+        if (!owner || !name || !url) {
+          continue;
+        }
+
+        repositoryMap.set(`gitea:${providerAuth.baseUrl}:${owner}/${name}`.toLowerCase(), { provider: "gitea", owner, name, fullName: `${owner}/${name}`, url, defaultBranch, isPrivate: repository.private === true, description });
+      }
+
+      continue;
+    }
+
+    let nextUrl: string | null = "https://api.bitbucket.org/2.0/repositories?role=member&pagelen=100";
+    let page = 0;
+
+    while (nextUrl && page < 10) {
+      const response = await fetchJsonObject(nextUrl, providerHeaders("bitbucket", providerAuth.accessToken));
+
+      if (!response.ok || !response.data) {
+        break;
+      }
+
+      const values = Array.isArray(response.data.values) ? (response.data.values as Array<Record<string, unknown>>) : [];
+
+      for (const repository of values) {
+        const fullName = typeof repository.full_name === "string" ? repository.full_name : "";
+        const owner = typeof repository.workspace === "object" && repository.workspace && typeof (repository.workspace as Record<string, unknown>).slug === "string" ? String((repository.workspace as Record<string, unknown>).slug) : fullName.split("/")[0];
+        const name = typeof repository.slug === "string" ? repository.slug : fullName.split("/")[1];
+        const links = repository.links && typeof repository.links === "object" ? (repository.links as Record<string, unknown>) : null;
+        const html = links?.html && typeof links.html === "object" ? (links.html as Record<string, unknown>) : null;
+        const url = typeof html?.href === "string" ? html.href : owner && name ? `https://bitbucket.org/${owner}/${name}` : "";
+        const mainbranch = repository.mainbranch && typeof repository.mainbranch === "object" ? (repository.mainbranch as Record<string, unknown>) : null;
+        const defaultBranch = typeof mainbranch?.name === "string" ? mainbranch.name : "main";
+        const description = typeof repository.description === "string" ? repository.description : null;
+
+        if (!owner || !name || !url) {
+          continue;
+        }
+
+        repositoryMap.set(`bitbucket:${owner}/${name}`.toLowerCase(), { provider: "bitbucket", owner, name, fullName: `${owner}/${name}`, url, defaultBranch, isPrivate: repository.is_private === true, description });
+      }
+
+      nextUrl = typeof response.data.next === "string" ? response.data.next : null;
+      page += 1;
     }
   }
 
   if (repositoryMap.size === 0) {
-    return { status: "error", message: "GitHub repository lookup failed. Reconnect GitHub and try again.", repositories: [] };
+    return { status: "error", message: "Repository lookup failed. Reconnect your Git provider accounts and try again.", repositories: [] };
   }
 
   const repositories = Array.from(repositoryMap.values())
@@ -489,29 +668,30 @@ export async function searchGitHubRepositories(query: string): Promise<{ status:
   return { status: "success", message: "", repositories };
 }
 
-export async function getGitHubBranches(owner: string, name: string): Promise<{ status: "success" | "error"; message: string; branches: string[] }> {
+export async function getGitHubBranches(provider: GitProvider, owner: string, name: string, url: string): Promise<{ status: "success" | "error"; message: string; branches: string[] }> {
   const session = await auth.api.getSession({ headers: await headers() });
 
   if (!session) {
     return { status: "error", message: "You must be signed in to load branches.", branches: [] };
   }
 
-  if (!/^[A-Za-z0-9_.-]+$/.test(owner) || !/^[A-Za-z0-9_.-]+$/.test(name)) {
-    return { status: "error", message: "Invalid GitHub repository.", branches: [] };
+  const parsed = parseGitRepositoryReference(provider, owner, name, url);
+
+  if (!parsed) {
+    return { status: "error", message: "Invalid Git repository.", branches: [] };
   }
 
   const { active: organization } = await getActiveOrganization(session.user);
-  const parsed: ParsedGitRepository = { provider: "github", owner, name, url: `https://github.com/${owner}/${name}` };
-  const { githubAuth } = await findGitHubAuthForRepository(organization.id, parsed);
+  const providerAuth = parsed.provider === "gitea" ? null : (await getWorkspaceProviderAuths(organization.id, parsed.provider)).find((auth) => auth.provider === parsed.provider) ?? null;
 
-  if (!githubAuth) {
-    return { status: "error", message: "Connect GitHub repository access to this workspace first.", branches: [] };
+  if (parsed.provider !== "gitea" && !providerAuth) {
+    return { status: "error", message: `Connect ${parsed.provider} repository access to this workspace first.`, branches: [] };
   }
 
-  const branches = await listRepositoryBranches(parsed, githubAuth.accessToken);
+  const branches = await listRepositoryBranches(parsed, providerAuth?.accessToken);
 
   if (branches.length === 0) {
-    return { status: "error", message: "No branches were returned by GitHub.", branches: [] };
+    return { status: "error", message: "No branches were returned by the Git provider.", branches: [] };
   }
 
   return { status: "success", message: "", branches };
@@ -549,7 +729,7 @@ export async function attachRepository(_: RepositoryFormState, formData: FormDat
     return { status: "error", message: "Project not found in the active workspace." };
   }
 
-  const { githubAuth, lookup } = parsed.provider === "github" ? await findGitHubAuthForRepository(organization.id, parsed) : { githubAuth: null, lookup: await lookupGitRepository(parsed) };
+  const { githubAuth, lookup } = await findProviderAuthForRepository(organization.id, parsed);
 
   if (!lookup.repository) {
     if (lookup.inaccessible) {
@@ -560,7 +740,7 @@ export async function attachRepository(_: RepositoryFormState, formData: FormDat
   }
 
   if (lookup.repository.isPrivate && !githubAuth) {
-    return { status: "error", message: "Private repositories require GitHub repository access connected to this workspace." };
+    return { status: "error", message: `Private repositories require ${lookup.repository.provider} repository access connected to this workspace.` };
   }
 
   const branch = selectedBranch || lookup.repository.defaultBranch;
@@ -657,10 +837,10 @@ export async function syncRepositoryCommits(repositoryId: string): Promise<SyncC
     return { status: "error", message: "Invalid repository URL metadata.", newCommits: 0 };
   }
 
-  const githubAuth = repository.provider === "github" ? await getWorkspaceGitHubAuth(organization.id, repository.integrationId) : null;
+  const githubAuth = await getWorkspaceProviderAuth(organization.id, repository.provider, repository.integrationId);
 
   if (repository.isPrivate && !githubAuth) {
-    return { status: "error", message: "Private repositories require GitHub repository access connected to this workspace.", newCommits: 0 };
+    return { status: "error", message: `Private repositories require ${repository.provider} repository access connected to this workspace.`, newCommits: 0 };
   }
 
   const response = await listRepositoryCommits(parsedRepository, repository.defaultBranch, githubAuth?.accessToken);

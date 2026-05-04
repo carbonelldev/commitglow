@@ -20,7 +20,7 @@ const questions = [
 ];
 
 const comparisonRows = [
-  ["Monthly generations", "25", "200", "500 included, then metered"],
+  ["Monthly generations", "25", "200", "1,000 included, then metered"],
   ["Automatic overage billing", "No", "No", "$0.01 per extra generation"],
   ["Workspaces", "2", "5", "Unlimited"],
   ["Projects", "3 per workspace", "Unlimited", "Unlimited"],

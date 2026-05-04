@@ -79,7 +79,7 @@ export function RepositoryAttachForm({ projects, fixedProjectId, fixedProjectNam
     setLookupMessage("");
 
     startTransition(async () => {
-      const result = await getGitHubBranches(repository.owner, repository.name);
+      const result = await getGitHubBranches(repository.provider, repository.owner, repository.name, repository.url);
       setLookupPending(false);
 
       if (result.status === "error") {
@@ -116,8 +116,8 @@ export function RepositoryAttachForm({ projects, fixedProjectId, fixedProjectNam
       <div className="rounded-sm border border-white/10 bg-black/20 p-4">
         <div className="flex flex-col gap-3 sm:flex-row">
           <label className="block min-w-0 flex-1">
-            <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Search connected GitHub</span>
-            <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search owner, repo, or description" disabled={disabled || lookupPending} />
+            <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Search connected providers</span>
+            <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search all connected Git accounts" disabled={disabled || lookupPending} />
           </label>
           <div className="flex items-end">
             <Button type="button" onClick={searchRepositories} disabled={disabled || lookupPending} className="w-full sm:w-auto">
@@ -178,7 +178,7 @@ export function RepositoryAttachForm({ projects, fixedProjectId, fixedProjectNam
         <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Repository URL</span>
         {selectedRepository ? <input type="hidden" name="repositoryUrl" value={selectedRepository.url} /> : null}
         <Input name={selectedRepository ? undefined : "repositoryUrl"} value={selectedRepository?.url ?? query} onChange={(event) => setQuery(event.target.value)} placeholder="https://gitlab.com/group/project or owner/repo" required disabled={disabled} readOnly={Boolean(selectedRepository)} />
-        <span className="mt-2 block text-xs leading-5 text-zinc-600">GitHub search uses connected accounts. Public GitHub, GitLab, Bitbucket, and Gitea URLs can be entered manually.</span>
+        <span className="mt-2 block text-xs leading-5 text-zinc-600">Search checks all connected GitHub and GitLab accounts. Public URLs from any provider can be entered manually.</span>
       </label>
       {selectedRepository ? (
         <button type="button" onClick={() => { setSelectedRepository(null); setBranches([]); setSelectedBranch(""); }} className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500 transition hover:text-white">
