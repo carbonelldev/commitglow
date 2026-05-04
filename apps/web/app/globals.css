@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+@source "../node_modules/streamdown/dist/*.js";
+@source "../node_modules/@streamdown/code/dist/*.js";
+
 :root {
   --background: #030305;
   --foreground: #f4f4f5;
@@ -115,6 +118,207 @@ a {
   animation: workspace-modal-card-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+.ai-session {
+  animation: workspace-modal-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.ai-session-panel {
+  animation: ai-session-panel-in 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.ai-message-enter {
+  animation: ai-message-in 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.ai-skeleton {
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-skeleton::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(196, 181, 253, 0.18), transparent);
+  animation: ai-skeleton-scan 1.15s linear infinite;
+}
+
+.reasoning-text {
+  animation: reasoning-fade-in 280ms ease-out both;
+}
+
+.commitglow-markdown {
+  color: rgb(212 212 216);
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", monospace;
+  font-size: 0.875rem;
+  line-height: 1.75;
+}
+
+.commitglow-markdown > * + * {
+  margin-top: 1rem;
+}
+
+.commitglow-markdown [data-streamdown="heading-1"],
+.commitglow-markdown [data-streamdown="heading-2"],
+.commitglow-markdown [data-streamdown="heading-3"],
+.commitglow-markdown [data-streamdown="heading-4"],
+.commitglow-markdown [data-streamdown="heading-5"],
+.commitglow-markdown [data-streamdown="heading-6"] {
+  color: white;
+  font-family: inherit;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+}
+
+.commitglow-markdown [data-streamdown="heading-1"] {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.8rem;
+  font-size: clamp(1.65rem, 5vw, 2.35rem);
+  line-height: 1.1;
+}
+
+.commitglow-markdown [data-streamdown="heading-2"] {
+  position: relative;
+  margin-top: 1.5rem;
+  padding-left: 1rem;
+  font-size: 1.2rem;
+  line-height: 1.35;
+}
+
+.commitglow-markdown [data-streamdown="heading-2"]::before {
+  position: absolute;
+  top: 0.25rem;
+  bottom: 0.2rem;
+  left: 0;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(196, 181, 253, 0.95), rgba(139, 92, 246, 0.25));
+  content: "";
+  box-shadow: 0 0 16px rgba(139, 92, 246, 0.45);
+}
+
+.commitglow-markdown [data-streamdown="heading-3"] {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.commitglow-markdown [data-streamdown="strong"] {
+  color: rgb(237 233 254);
+  font-weight: 600;
+}
+
+.commitglow-markdown [data-streamdown="link"] {
+  color: rgb(196 181 253);
+  text-decoration: underline;
+  text-decoration-color: rgba(196, 181, 253, 0.35);
+  text-underline-offset: 0.22em;
+  transition: color 160ms ease, text-decoration-color 160ms ease;
+}
+
+.commitglow-markdown [data-streamdown="link"]:hover {
+  color: white;
+  text-decoration-color: rgba(196, 181, 253, 0.85);
+}
+
+.commitglow-markdown [data-streamdown="unordered-list"],
+.commitglow-markdown [data-streamdown="ordered-list"] {
+  display: grid;
+  gap: 0.55rem;
+  padding-left: 0;
+  list-style: none;
+}
+
+.commitglow-markdown [data-streamdown="list-item"] {
+  position: relative;
+  padding-left: 1.4rem;
+  color: rgb(212 212 216);
+}
+
+.commitglow-markdown [data-streamdown="unordered-list"] > [data-streamdown="list-item"]::before {
+  position: absolute;
+  top: 0.74em;
+  left: 0.15rem;
+  width: 0.4rem;
+  height: 0.4rem;
+  border: 1px solid rgba(196, 181, 253, 0.75);
+  background: rgba(139, 92, 246, 0.18);
+  content: "";
+  box-shadow: 0 0 14px rgba(139, 92, 246, 0.32);
+}
+
+.commitglow-markdown [data-streamdown="ordered-list"] {
+  counter-reset: commitglow-list;
+}
+
+.commitglow-markdown [data-streamdown="ordered-list"] > [data-streamdown="list-item"] {
+  counter-increment: commitglow-list;
+}
+
+.commitglow-markdown [data-streamdown="ordered-list"] > [data-streamdown="list-item"]::before {
+  position: absolute;
+  left: 0;
+  color: rgb(196 181 253);
+  content: counter(commitglow-list, decimal-leading-zero);
+  font-size: 0.68rem;
+  letter-spacing: -0.04em;
+}
+
+.commitglow-markdown [data-streamdown="blockquote"] {
+  border-left: 2px solid rgba(196, 181, 253, 0.55);
+  background: linear-gradient(90deg, rgba(139, 92, 246, 0.11), transparent);
+  padding: 0.85rem 1rem;
+  color: rgb(161 161 170);
+}
+
+.commitglow-markdown [data-streamdown="horizontal-rule"] {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, rgba(196, 181, 253, 0.55), transparent);
+}
+
+.commitglow-markdown [data-streamdown="inline-code"] {
+  border: 1px solid rgba(196, 181, 253, 0.18);
+  border-radius: 0.125rem;
+  background: rgba(139, 92, 246, 0.12);
+  padding: 0.1rem 0.35rem;
+  color: rgb(237 233 254);
+  font-family: inherit;
+  font-size: 0.82em;
+}
+
+.commitglow-markdown [data-streamdown="code-block"] {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.125rem;
+  background: rgba(3, 3, 5, 0.82);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 20px 60px rgba(0, 0, 0, 0.28);
+}
+
+.commitglow-markdown [data-streamdown="table-wrapper"] {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.125rem;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.commitglow-markdown [data-streamdown="table-header-cell"] {
+  background: rgba(139, 92, 246, 0.12);
+  color: rgb(237 233 254);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.commitglow-markdown [data-streamdown="table-cell"] {
+  border-color: rgba(255, 255, 255, 0.08);
+  color: rgb(212 212 216);
+}
+
+.commitglow-markdown [data-streamdown="caret"] {
+  background: rgb(167 139 250);
+  box-shadow: 0 0 18px rgba(139, 92, 246, 0.75);
+}
+
 .auth-provider {
   transform: translateY(0);
 }
@@ -207,6 +411,47 @@ a {
     opacity: 1;
     transform: translateY(0) scale(1);
     filter: blur(0);
+  }
+}
+
+@keyframes ai-session-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes ai-message-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ai-skeleton-scan {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes reasoning-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

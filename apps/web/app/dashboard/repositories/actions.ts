@@ -897,10 +897,60 @@ export async function syncRepositoryCommits(repositoryId: string): Promise<SyncC
   revalidatePath("/dashboard/projects");
   revalidatePath(`/dashboard/projects/${repository.projectSlug}`);
   revalidatePath(`/dashboard/projects/${repository.projectSlug}/repositories`);
+  revalidatePath(`/dashboard/projects/${repository.projectSlug}/repositories/${repository.id}`);
+  revalidatePath(`/dashboard/projects/${repository.projectSlug}/changelogs`);
 
   return {
     status: "success",
     message: inserted === 0 ? "Repository is up to date. No new commits found." : `Synced ${inserted} new commit${inserted === 1 ? "" : "s"}.`,
     newCommits: inserted
+  };
+}
+
+export async function getRepositoryDetailData(repositoryId: string) {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session) {
+    return null;
+  }
+
+  const { active: organization } = await getActiveOrganization(session.user);
+  const [repository] = await db
+    .select({
+      id: repositories.id,
+      projectId: repositories.projectId,
+      projectSlug: projects.slug,
+      provider: repositories.provider,
+      owner: repositories.owner,
+      name: repositories.name,
+      url: repositories.url,
+      defaultBranch: repositories.defaultBranch,
+      isPrivate: repositories.isPrivate,
+      updatedAt: repositories.updatedAt
+    })
+    .from(repositories)
+    .innerJoin(projects, eq(repositories.projectId, projects.id))
+    .where(and(eq(repositories.id, repositoryId), eq(projects.organizationId, organization.id)))
+    .limit(1);
+
+  if (!repository) {
+    return null;
+  }
+
+  return {
+    repository: {
+      id: repository.id,
+      provider: repository.provider,
+      owner: repository.owner,
+      name: repository.name,
+      url: repository.url,
+      defaultBranch: repository.defaultBranch,
+      isPrivate: repository.isPrivate,
+      updatedAt: repository.updatedAt
+    },
+    project: {
+      id: repository.projectId,
+      slug: repository.projectSlug
+    }
   };
 }
