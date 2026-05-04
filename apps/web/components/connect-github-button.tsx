@@ -4,7 +4,7 @@ import { authClient } from "@/lib/auth-client";
 import { Button } from "@commitglow/ui";
 import { useState } from "react";
 
-export function ConnectGitHubButton({ callbackURL = "/dashboard/providers?connect=github" }: { callbackURL?: string }) {
+export function ConnectGitHubButton({ callbackURL = "/dashboard/providers?connect=github", label = "Connect GitHub Repositories", variant = "primary" }: { callbackURL?: string; label?: string; variant?: "primary" | "secondary" | "ghost" }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
 
@@ -31,8 +31,8 @@ export function ConnectGitHubButton({ callbackURL = "/dashboard/providers?connec
 
   return (
     <div className="mt-5">
-      <Button type="button" variant="primary" onClick={connectGitHub} disabled={pending} className="w-full">
-        {pending ? "Connecting GitHub..." : "Connect GitHub Repositories"}
+      <Button type="button" variant={variant} onClick={connectGitHub} disabled={pending} className="w-full">
+        {pending ? "Connecting GitHub..." : label}
       </Button>
       {error ? <p className="mt-3 font-mono text-sm text-violet-200">! {error}</p> : null}
     </div>

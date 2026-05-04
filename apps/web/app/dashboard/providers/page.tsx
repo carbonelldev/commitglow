@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { formatProviderAccountLimit, getProviderAccountLimit, toPlanSlug } from "@/lib/plans";
 import { Card } from "@commitglow/ui";
 import { account, integrations } from "@commitglow/db/schema";
-import { and, asc, eq, isNotNull } from "drizzle-orm";
+import { and, asc, desc, eq, isNotNull } from "drizzle-orm";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -60,13 +60,24 @@ async function verifyGitHubRepositoryScopes(accessToken: string, savedScope: str
 }
 
 async function syncGitHubProvider(userId: string, organizationId: string, plan: string) {
-  const [githubAccount] = await db
-    .select({ accountId: account.accountId, accessToken: account.accessToken, scope: account.scope })
+  const githubAccounts = await db
+    .select({ accountId: account.accountId, accessToken: account.accessToken, scope: account.scope, updatedAt: account.updatedAt })
     .from(account)
     .where(and(eq(account.userId, userId), eq(account.providerId, "github"), isNotNull(account.accessToken)))
-    .limit(1);
+    .orderBy(desc(account.updatedAt));
 
-  if (!githubAccount?.accessToken) {
+  if (githubAccounts.length === 0) {
+    return { status: "error", message: "No GitHub account token was found. Try connecting GitHub again." };
+  }
+
+  const connectedProviderAccounts = await db
+    .select({ providerAccountId: integrations.providerAccountId, metadata: integrations.metadata })
+    .from(integrations)
+    .where(and(eq(integrations.organizationId, organizationId), eq(integrations.provider, "github")));
+  const explicitConnectedAccountIds = new Set(connectedProviderAccounts.filter((provider) => isExplicitProviderConnection(provider.metadata)).flatMap((provider) => (provider.providerAccountId ? [provider.providerAccountId] : [])));
+  const githubAccount = githubAccounts.find((candidate) => !explicitConnectedAccountIds.has(candidate.accountId)) ?? githubAccounts[0];
+
+  if (!githubAccount.accessToken) {
     return { status: "error", message: "No GitHub account token was found. Try connecting GitHub again." };
   }
 
@@ -153,6 +164,8 @@ export default async function ProvidersPage({ searchParams }: { searchParams: Pr
     .orderBy(asc(integrations.provider), asc(integrations.providerAccountName));
   const connectedProviders = workspaceProviders.filter((provider) => isExplicitProviderConnection(provider.metadata));
   const providerLimitLabel = formatProviderAccountLimit(toPlanSlug(snapshot.user.plan));
+  const providerLimit = getProviderAccountLimit(toPlanSlug(snapshot.user.plan));
+  const canConnectAnotherProvider = providerLimit === null || connectedProviders.length < providerLimit;
   const githubConnected = connectedProviders.some((provider) => provider.provider === "github");
 
   return (
@@ -178,7 +191,8 @@ export default async function ProvidersPage({ searchParams }: { searchParams: Pr
           <div className="mt-4 rounded-sm border border-white/10 bg-black/30 p-3 font-mono text-xs leading-5 text-zinc-600">
             Required permission: <span className="text-zinc-300">repo</span>
           </div>
-          {githubConnected ? <p className="mt-5 font-mono text-sm text-zinc-400">// GitHub repository access is connected.</p> : <ConnectGitHubButton callbackURL="/dashboard/providers?connect=github" />}
+          {githubConnected ? <p className="mt-5 font-mono text-sm text-zinc-400">// GitHub repository access is connected.</p> : null}
+          {canConnectAnotherProvider ? <ConnectGitHubButton callbackURL="/dashboard/providers?connect=github" label={githubConnected ? "Connect Another GitHub Account" : "Connect GitHub Repositories"} variant={githubConnected ? "secondary" : "primary"} /> : <p className="mt-5 font-mono text-sm text-zinc-500">// Provider account limit reached.</p>}
         </Card>
         {upcomingProviders.map((item) => (
           <Card key={item.provider}>

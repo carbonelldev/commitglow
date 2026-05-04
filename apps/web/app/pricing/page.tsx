@@ -1,8 +1,8 @@
 import { AnchorButton, Card } from "@commitglow/ui";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { env } from "@/lib/env";
 import { planList, plans, toPlanSlug } from "@/lib/plans";
+import { isPolarCheckoutConfigured } from "@/lib/polar-billing";
 import { PolarCheckoutButton } from "@/components/polar-checkout-button";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -51,7 +51,6 @@ export default async function PricingPage() {
   const isAuthenticated = Boolean(session);
   const actionHref = isAuthenticated ? "/dashboard" : "/auth/sign-up";
   const activePlan = session ? toPlanSlug(session.user.plan) : undefined;
-  const polarConfigured = Boolean(env.polarAccessToken);
 
   return (
     <main className="min-h-screen overflow-hidden">
@@ -75,6 +74,8 @@ export default async function PricingPage() {
       <section id="plans" className="mx-auto grid w-full max-w-7xl overflow-hidden border-x border-b border-white/10 bg-black/20 divide-y divide-white/10 lg:grid-cols-3 lg:divide-x lg:divide-y-0">
         {planList.map((tier) => {
           const isCurrentPlan = activePlan === tier.slug;
+          const checkoutSlug = "checkoutSlug" in tier ? tier.checkoutSlug : undefined;
+          const polarConfigured = checkoutSlug ? isPolarCheckoutConfigured(checkoutSlug) : false;
 
           return (
             <Card
@@ -111,13 +112,17 @@ export default async function PricingPage() {
                   <span>Current Plan</span>
                   <ArrowRightIcon />
                 </AnchorButton>
-              ) : tier.slug === "free" || !isAuthenticated || !tier.checkoutSlug ? (
+              ) : tier.slug === "free" || !isAuthenticated || !checkoutSlug ? (
                 <AnchorButton href={actionHref} variant={tier.highlighted ? "primary" : "secondary"} className="group mt-8 w-full rounded-full hover:shadow-[0_0_28px_rgba(139,92,246,0.22)]">
                   <span>{tier.slug === "free" ? tier.cta : "Sign In To Upgrade"}</span>
                   <ArrowRightIcon />
                 </AnchorButton>
+              ) : !polarConfigured ? (
+                <div className="mt-8 rounded-full border border-white/10 bg-white/[0.02] px-5 py-3 text-center font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">
+                  Billing Unavailable
+                </div>
               ) : (
-                <PolarCheckoutButton slug={tier.checkoutSlug} referenceId={session?.user.id} configured={polarConfigured} highlighted={tier.highlighted}>
+                <PolarCheckoutButton slug={checkoutSlug} referenceId={session?.user.id} configured={polarConfigured} highlighted={tier.highlighted}>
                   {tier.cta}
                 </PolarCheckoutButton>
               )}

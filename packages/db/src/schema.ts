@@ -114,6 +114,7 @@ export const repositories = pgTable(
   {
     id: text("id").primaryKey(),
     projectId: text("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+    integrationId: text("integration_id").references(() => integrations.id, { onDelete: "set null" }),
     provider: providerEnum("provider").notNull().default("github"),
     owner: text("owner").notNull(),
     name: text("name").notNull(),
@@ -123,7 +124,7 @@ export const repositories = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow()
   },
-  (table) => [index("repositories_project_id_idx").on(table.projectId)]
+  (table) => [index("repositories_project_id_idx").on(table.projectId), index("repositories_integration_id_idx").on(table.integrationId)]
 );
 
 export const repoConnections = pgTable(
