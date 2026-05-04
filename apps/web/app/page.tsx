@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { AnchorButton, Card } from "@commitglow/ui";
-import { billingPrinciples } from "@/lib/plans";
+import { billingPrinciples, planList } from "@/lib/plans";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { HomepageGreeting, HomepageCtaButtons } from "@/components/auth-aware-cta";
@@ -56,7 +56,11 @@ const proofPoints = [
   ["Open-source core", "Built around developer-owned markdown instead of locked-in release content."],
 ] as const;
 
-const pricingNotes = ["Starter: 25 generations", "Pro: 300 generations", "Team: 1,000 included generations"];
+const pricingNotes = planList.map((plan) => {
+  const generationLabel = plan.slug === "team" ? "included generations" : "generations";
+
+  return `${plan.label}: ${plan.includedGenerations.toLocaleString("en-US")} ${generationLabel}`;
+});
 
 const demoCommits = [
   ["feat", "Stream AI changelog drafts from selected commits", true],

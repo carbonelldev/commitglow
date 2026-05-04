@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Card } from "@commitglow/ui";
-import { planList } from "@/lib/plans";
+import { planList, plans } from "@/lib/plans";
 import { isPolarCheckoutConfigured } from "@/lib/polar-billing";
 import type { PaidPlanSlug } from "@/lib/plans";
 import { SiteFooter } from "@/components/site-footer";
@@ -11,26 +11,38 @@ import { seo } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Pricing — AI Changelog & Release Notes Plans | CommitGlow",
-  description: "Simple pricing for cleaner changelogs, release notes, and launch posts. Compare Starter, Pro, and Team plans for CommitGlow.",
+  description: "Simple pricing for cleaner changelogs, release notes, and launch posts. Compare Starter, Pro, Team, and Enterprise options for CommitGlow.",
   alternates: {
     canonical: `${seo.siteUrl}/pricing`,
   },
   openGraph: {
     title: "Pricing — AI Changelog & Release Notes Plans | CommitGlow",
-    description: "Simple pricing for cleaner changelogs, release notes, and launch posts. Compare Starter, Pro, and Team plans.",
+    description: "Simple pricing for cleaner changelogs, release notes, and launch posts. Compare Starter, Pro, Team, and Enterprise options.",
     url: `${seo.siteUrl}/pricing`,
   },
   twitter: {
     title: "Pricing — AI Changelog & Release Notes Plans | CommitGlow",
-    description: "Simple pricing for cleaner changelogs, release notes, and launch posts.",
+    description: "Compare CommitGlow pricing for Starter, Pro, Team, and Enterprise release workflows.",
   },
 };
+
+const starterPlan = plans.free;
+const proPlan = plans.pro;
+const teamPlan = plans.team;
+
+function formatCount(value: number) {
+  return value.toLocaleString("en-US");
+}
+
+function formatOveragePrice(value: number) {
+  return `$${value.toFixed(2)}`;
+}
 
 const questions = [
   ["Can I use it for free?", "Yes. Starter is designed for trying CommitGlow and shipping small projects."],
   ["What counts as a generation?", "One generated release-note, changelog, post, or brief output from a change set."],
   ["Will I get surprise overage charges?", "No on Starter and Pro. Team only bills extra generations after the included monthly allowance, and the per-generation price is shown before checkout."],
-  ["How does Team usage billing work?", "Team starts at $15/month, includes 1,000 generations, then bills only additional generations at $0.01 each."],
+  ["How does Team usage billing work?", `Team starts at ${teamPlan.price.replace("From ", "")}/${teamPlan.cadence.replace("per ", "")}, includes ${formatCount(teamPlan.includedGenerations)} generations, then bills only additional generations at ${formatOveragePrice(teamPlan.overagePriceUsd ?? 0)} each.`],
   ["Is my account a workspace?", "Yes. Every signed-in account starts as a personal workspace. There is no separate user workspace concept in the product UI."],
   ["Can I create multiple workspaces?", "Yes. Starter includes up to 2 workspaces total so you can separate personal and product work. Paid plans will unlock more."],
   ["Can I connect multiple Git accounts?", "The schema supports multiple provider accounts per workspace, including GitHub, GitLab, and Bitbucket. Paid limits will gate that once connection UI ships."],
@@ -44,11 +56,11 @@ const faqSchemaItems = questions.map(([question, answer]) => ({
 }));
 
 const comparisonRows = [
-  ["Monthly generations", "25", "300", "1,000 included, then metered", "Custom"],
-  ["Automatic overage billing", "No", "No", "$0.01 each after allowance", "Custom contract"],
-  ["Workspaces", "2", "5", "Unlimited", "Custom"],
-  ["Projects", "3 per workspace", "Unlimited", "Unlimited", "Custom"],
-  ["Connected Git accounts", "1", "5", "Unlimited", "Custom"],
+  ["Monthly generations", formatCount(starterPlan.includedGenerations), formatCount(proPlan.includedGenerations), `${formatCount(teamPlan.includedGenerations)} included, then metered`, "Custom"],
+  ["Automatic overage billing", "No", "No", `${formatOveragePrice(teamPlan.overagePriceUsd ?? 0)} each after allowance`, "Custom contract"],
+  ["Workspaces", String(starterPlan.workspaceLimit), String(proPlan.workspaceLimit), "Unlimited", "Custom"],
+  ["Projects", `${starterPlan.projectLimit} per workspace`, "Unlimited", "Unlimited", "Custom"],
+  ["Connected Git accounts", String(starterPlan.providerAccountLimit), String(proPlan.providerAccountLimit), "Unlimited", "Custom"],
   ["Best output fit", "Release notes", "Launch posts + email", "Shared team workflows", "Security + scale"],
 ] as const;
 
