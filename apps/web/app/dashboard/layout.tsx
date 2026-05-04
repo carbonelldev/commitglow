@@ -3,8 +3,8 @@ import { DashboardNav } from "@/components/dashboard-nav";
 import { db } from "@/lib/db";
 import { getActiveOrganization } from "@/lib/organizations";
 import { formatWorkspaceLimit, getWorkspaceLimit, toPlanSlug } from "@/lib/plans";
-import { projects, repositories } from "@commitglow/db/schema";
-import { asc, desc, eq } from "drizzle-orm";
+import { organizations as organizationTable, projects, repositories } from "@commitglow/db/schema";
+import { asc, count, desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -21,6 +21,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const organization = organizationContext.active;
   const accountPlan = toPlanSlug(session.user.plan);
   const workspaceLimit = getWorkspaceLimit(accountPlan);
+  const [ownedWorkspaceCount] = await db.select({ value: count() }).from(organizationTable).where(eq(organizationTable.ownerId, session.user.id));
   const userProjects = await db
     .select({
       id: projects.id,
@@ -57,9 +58,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
         organization={{ id: organization.id, name: organization.name }}
         organizations={organizationContext.organizations.map((item) => ({ id: item.id, name: item.name, role: item.role }))}
         workspaceLimit={{
-          count: organizationContext.organizations.length,
+          count: ownedWorkspaceCount?.value ?? 0,
           label: formatWorkspaceLimit(accountPlan),
-          reached: workspaceLimit !== null && organizationContext.organizations.length >= workspaceLimit
+          reached: workspaceLimit !== null && (ownedWorkspaceCount?.value ?? 0) >= workspaceLimit
         }}
         projects={sidebarProjects}
       />
