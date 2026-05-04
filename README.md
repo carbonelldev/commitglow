@@ -358,14 +358,15 @@ CommitGlow ships with plan definitions in `apps/web/lib/plans.ts`.
 | Plan | Price | Included Usage | Limits |
 | --- | --- | --- | --- |
 | Starter | `$0 forever` | 25 generations per month | 2 workspaces, 3 projects per workspace, 1 Git provider account. |
-| Pro | `$10 per month` | 200 generations per month | 5 workspaces, unlimited projects, 5 provider accounts. |
-| Team | `$25+ per month` | 500 included generations, then metered usage | Unlimited workspaces, projects, and provider accounts. |
+| Pro | `$5 per month` | 300 generations per month | 5 workspaces, unlimited projects, 5 provider accounts. |
+| Team | `From $15 per month` | 1,000 included generations, then metered usage | Unlimited workspaces, projects, and provider accounts. |
+| Enterprise | Contact us | Custom generation limits | SSO/SAML, security review, invoice billing, dedicated support, and SLA options. |
 
 Billing principles:
 
 - Starter and Pro do not create automatic overage charges.
-- Team includes 500 generations per month before metered billing starts.
-- Team overage is billed at `$0.01` per additional generation.
+- Team includes 1,000 generations per month before metered billing starts.
+- Extra Team generations are `$0.01` each, billed only after the included monthly allowance.
 - A generation is one generated release note, changelog, launch post, email update, or update card.
 
 ## Security Notes

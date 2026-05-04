@@ -42,11 +42,11 @@ export function HomepageGreeting() {
 export function HomepageCtaButtons() {
   const { isPending, isAuthenticated } = useAuthState();
   const primaryHref = isPending || !isAuthenticated ? "/auth/sign-up" : "/dashboard";
-  const primaryLabel = isPending || !isAuthenticated ? "Generate Notes" : "Open Dashboard";
-  const secondaryHref = isPending || !isAuthenticated ? "#features" : "/dashboard/projects";
-  const secondaryLabel = isPending || !isAuthenticated ? "View Example" : "Projects";
+  const primaryLabel = isPending || !isAuthenticated ? "Start a Changelog" : "Open Dashboard";
+  const secondaryHref = isPending || !isAuthenticated ? "#how" : "/dashboard/projects";
+  const secondaryLabel = isPending || !isAuthenticated ? "See Workflow" : "Projects";
   const notice = isPending || !isAuthenticated
-    ? "No sign up required for the preview."
+    ? "Start free, then create a project and sync your first repository."
     : "You are signed in. Continue where you left off.";
 
   return (
@@ -80,18 +80,29 @@ export function PricingCurrentPlanBadge() {
 export function PricingTierCta({
   tierSlug,
   checkoutSlug,
+  contactHref,
   label,
   highlighted,
   polarConfigured,
 }: {
   tierSlug: string;
   checkoutSlug?: string;
+  contactHref?: string;
   label: string;
   highlighted: boolean;
   polarConfigured: boolean;
 }) {
   const { isPending, isAuthenticated, activePlan, session } = useAuthState();
   const isCurrentPlan = activePlan === tierSlug;
+
+  if (contactHref) {
+    return (
+      <AnchorButton href={contactHref} variant={highlighted ? "primary" : "secondary"} className="group mt-8 w-full rounded-full hover:shadow-[0_0_28px_rgba(139,92,246,0.22)]">
+        <span>{label}</span>
+        <ArrowRightIcon />
+      </AnchorButton>
+    );
+  }
 
   if (isPending) {
     return (
