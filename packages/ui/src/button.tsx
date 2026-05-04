@@ -18,7 +18,7 @@ const variants = {
 
 function classes(variant: BaseProps["variant"], className?: string) {
   return [
-    "inline-flex cursor-pointer items-center justify-center gap-2 rounded-sm border px-5 py-3 font-mono text-xs uppercase tracking-[0.14em] transition duration-200 focus:outline-none focus:ring-2 focus:ring-violet-300/50 focus:ring-offset-2 focus:ring-offset-black disabled:cursor-not-allowed disabled:opacity-50",
+    "inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-sm border px-5 py-3 font-mono text-xs uppercase tracking-[0.14em] transition duration-200 focus:outline-none focus:ring-2 focus:ring-violet-300/50 focus:ring-offset-2 focus:ring-offset-black disabled:cursor-not-allowed disabled:opacity-50",
     variants[variant ?? "secondary"],
     className
   ]

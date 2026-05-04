@@ -5,10 +5,10 @@ export function SiteFooter() {
   return (
     <footer className="mx-auto flex w-full max-w-7xl flex-col gap-6 border-t border-white/10 px-5 py-8 font-mono text-xs uppercase tracking-[0.16em] text-zinc-400 sm:flex-row sm:items-center sm:justify-between sm:px-8">
       <a href="/" className="text-white">&gt;_ CommitGlow</a>
-      <nav className="flex gap-8">
+      <nav className="flex flex-wrap gap-x-8 gap-y-3">
         <a href="https://twitter.com" target="_blank" rel="noreferrer">Twitter</a>
         <a href={githubHref} target="_blank" rel="noreferrer">GitHub</a>
-        <a href="#">Privacy</a>
+        <a href="https://github.com/carbonelldev/commitglow/blob/main/LICENSE" target="_blank" rel="noreferrer">License</a>
       </nav>
     </footer>
   );

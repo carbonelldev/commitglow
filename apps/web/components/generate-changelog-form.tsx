@@ -1,7 +1,7 @@
 "use client";
 
 import { generateChangelogPreview, saveGeneratedChangelog, type GenerateChangelogPreviewState, type ManualChangelogFormState } from "@/app/dashboard/projects/[slug]/changelogs/actions";
-import { Button, Input } from "@commitglow/ui";
+import { Button, Input, Select } from "@commitglow/ui";
 import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 
@@ -102,11 +102,10 @@ export function GenerateChangelogForm({ projectId, projectSlug, repositories, pr
     <div className="space-y-5">
       <label className="block">
         <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Synced repository</span>
-        <select
+        <Select
           value={selectedRepositoryId}
           onChange={(event) => generate(event.target.value)}
           disabled={generating || reposWithCommits.length === 0}
-          className="w-full rounded-sm border border-white/10 bg-black/40 px-4 py-3 font-mono text-sm text-white outline-none transition focus:border-violet-300/70 focus:ring-2 focus:ring-violet-300/20 disabled:opacity-50"
         >
           <option value="">Select repository</option>
           {reposWithCommits.map((repository) => (
@@ -114,7 +113,7 @@ export function GenerateChangelogForm({ projectId, projectSlug, repositories, pr
               {repository.owner}/{repository.name} ({repository.commitCount} commit{repository.commitCount === 1 ? "" : "s"}, branch {repository.defaultBranch})
             </option>
           ))}
-        </select>
+        </Select>
       </label>
 
       {reposWithCommits.length === 0 ? (
@@ -138,7 +137,7 @@ export function GenerateChangelogForm({ projectId, projectSlug, repositories, pr
           </div>
 
           <div className="rounded-sm border border-white/10 bg-black/30 p-4 max-h-80 overflow-y-auto scrollbar-soft">
-            <pre className="whitespace-pre-wrap font-mono text-xs leading-6 text-zinc-300">{preview.body}</pre>
+            <pre className="whitespace-pre-wrap break-words font-mono text-xs leading-6 text-zinc-300">{preview.body}</pre>
           </div>
 
           <form ref={formRef} action={formAction} className="space-y-4">

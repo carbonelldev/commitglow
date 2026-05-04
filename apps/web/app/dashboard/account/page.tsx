@@ -27,7 +27,7 @@ export default async function AccountPage() {
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-violet-200">// Account</p>
         <div className="mt-4 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="font-mono text-4xl text-white md:text-5xl">Account settings</h1>
+            <h1 className="font-mono text-3xl text-white sm:text-4xl md:text-5xl">Account settings</h1>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-zinc-400">Manage your identity, billing plan, and account-level CommitGlow preferences.</p>
           </div>
           <AnchorButton href="/pricing" variant={isFree ? "primary" : "secondary"} className="w-full sm:w-auto">

@@ -4,7 +4,7 @@ import { Streamdown } from "streamdown";
 import { code } from "@streamdown/code";
 import { type ManualChangelogFormState } from "@/app/dashboard/projects/[slug]/changelogs/actions";
 import { Button } from "@commitglow/ui";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 type StreamChangelogGeneratorProps = {
@@ -89,6 +89,7 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
   const [error, setError] = useState("");
   const [title, setTitle] = useState("");
   const [version, setVersion] = useState("");
+  const sessionScrollRef = useRef<HTMLDivElement>(null);
 
   function startGeneration() {
     setSessionOpen(true);
@@ -185,6 +186,22 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
     }
   }, [state.status, onSaved]);
 
+  useEffect(() => {
+    if (!sessionOpen || status === "idle") {
+      return;
+    }
+
+    const animationFrame = requestAnimationFrame(() => {
+      const scrollContainer = sessionScrollRef.current;
+
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }
+    });
+
+    return () => cancelAnimationFrame(animationFrame);
+  }, [sessionOpen, status, reasoning, output, showReasoning]);
+
   const steps = [
     { label: "Read commits", done: commits.length > 0, active: status === "generating" && !reasoning && !output },
     { label: "Reason impact", done: Boolean(reasoning), active: status === "generating" && Boolean(reasoning) && !output },
@@ -205,10 +222,10 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
 
       {sessionOpen ? (
         <div className="ai-session fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-3 backdrop-blur-md sm:p-6" role="dialog" aria-modal="true" aria-labelledby="ai-session-title">
-          <div className="ai-session-panel relative flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-sm border border-violet-300/25 bg-[#050507] shadow-[0_32px_140px_rgba(0,0,0,0.75),0_0_80px_rgba(139,92,246,0.14)]">
+          <div className="ai-session-panel relative flex max-h-[94vh] w-full max-w-7xl flex-col overflow-hidden rounded-sm border border-violet-300/25 bg-[#050507] shadow-[0_32px_140px_rgba(0,0,0,0.75),0_0_80px_rgba(139,92,246,0.14)]">
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-200/80 to-transparent" />
 
-            <div className="border-b border-white/10 p-5 sm:p-6">
+            <div className="border-b border-white/10 p-4 sm:p-5">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="font-mono text-xs uppercase tracking-[0.18em] text-violet-200">// AI Generation Session</p>
@@ -220,7 +237,7 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
                 </button>
               </div>
 
-              <div className="mt-5 grid gap-2 sm:grid-cols-4">
+              <div className="mt-4 grid gap-2 sm:grid-cols-4">
                 {steps.map((step) => (
                   <div key={step.label} className={["rounded-sm border px-3 py-2", step.done ? "border-violet-300/30 bg-violet-500/10" : step.active ? "border-violet-300/40 bg-white/[0.04]" : "border-white/10 bg-black/20"].join(" ")}>
                     <div className="flex items-center gap-2">
@@ -232,7 +249,7 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
               </div>
             </div>
 
-            <div className="scrollbar-soft min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
+            <div ref={sessionScrollRef} className="scrollbar-soft min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
               <div className="space-y-4">
                 <div className="ai-message-enter max-w-3xl rounded-sm border border-white/10 bg-white/[0.02] p-4">
                   <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-zinc-600">Input Context</p>
@@ -245,7 +262,7 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
                   </div>
                 </div>
 
-                <div className="ai-message-enter ml-auto max-w-3xl rounded-sm border border-violet-300/20 bg-violet-500/[0.06] p-4 [animation-delay:90ms]">
+                <div className="ai-message-enter w-full rounded-sm border border-violet-300/20 bg-violet-500/[0.06] p-4 [animation-delay:90ms]">
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-violet-200">AI Workbench</p>
                     <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-600">{status === "done" ? "complete" : status === "error" ? "error" : "streaming"}</span>
@@ -261,7 +278,7 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
                       </button>
                       <div className="border-t border-white/10 px-4 py-3">
                         {showReasoning ? (
-                          <pre className="reasoning-text whitespace-pre-wrap font-mono text-[11px] leading-6 text-zinc-500">{reasoning}</pre>
+                          <pre className="reasoning-text whitespace-pre-wrap break-words font-mono text-[11px] leading-6 text-zinc-500">{reasoning}</pre>
                         ) : (
                           <p className="reasoning-text line-clamp-2 font-mono text-[11px] leading-6 text-zinc-600">{reasoning}</p>
                         )}
@@ -269,7 +286,7 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
                     </div>
                   ) : null}
 
-                  <div className="mt-4 rounded-sm border border-violet-300/20 bg-black/30 p-4">
+                  <div className="mt-4 rounded-sm border border-violet-300/15 bg-black/25 p-3 sm:p-4">
                     {status === "generating" && !output ? (
                       <div className="space-y-3">
                         <div className="ai-skeleton h-4 w-32 rounded-sm bg-violet-300/20" />
@@ -303,8 +320,8 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
             </div>
 
             {status === "done" && output.trim() ? (
-              <div className="border-t border-white/10 bg-black/20 p-5 sm:p-6">
-                <form action={formAction} className="space-y-4">
+              <div className="border-t border-white/10 bg-black/20 p-4 sm:p-5">
+                <form action={formAction} className="space-y-3">
                   <input type="hidden" name="projectId" value={projectId} />
                   <input type="hidden" name="projectSlug" value={projectSlug} />
                   <input type="hidden" name="repositoryId" value={repositoryId} />
@@ -316,11 +333,11 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block">
                       <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Title</span>
-                      <input name="title-display" value={title} onChange={(event) => setTitle(event.target.value)} maxLength={120} className="w-full rounded-sm border border-white/10 bg-black/40 px-4 py-3 font-mono text-sm text-white outline-none transition focus:border-violet-300/70 focus:ring-2 focus:ring-violet-300/20" />
+                      <input name="title-display" value={title} onChange={(event) => setTitle(event.target.value)} maxLength={120} className="w-full rounded-sm border border-white/10 bg-black/40 px-4 py-2.5 font-mono text-base text-white outline-none transition focus:border-violet-300/70 focus:ring-2 focus:ring-violet-300/20 sm:text-sm" />
                     </label>
                     <label className="block">
                       <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Version</span>
-                      <input name="version-display" value={version} onChange={(event) => setVersion(event.target.value)} maxLength={48} className="w-full rounded-sm border border-white/10 bg-black/40 px-4 py-3 font-mono text-sm text-white outline-none transition focus:border-violet-300/70 focus:ring-2 focus:ring-violet-300/20" />
+                      <input name="version-display" value={version} onChange={(event) => setVersion(event.target.value)} maxLength={48} className="w-full rounded-sm border border-white/10 bg-black/40 px-4 py-2.5 font-mono text-base text-white outline-none transition focus:border-violet-300/70 focus:ring-2 focus:ring-violet-300/20 sm:text-sm" />
                     </label>
                   </div>
 

@@ -177,9 +177,9 @@ function RepositoryDetailContent({ params }: { params: Promise<{ slug: string; r
         </div>
         <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="font-mono text-4xl text-white">{repository.owner}/{repository.name}</h1>
+            <h1 className="break-all font-mono text-3xl text-white sm:break-normal sm:text-4xl">{repository.owner}/{repository.name}</h1>
             <p className="mt-3 max-w-2xl text-zinc-400">
-              <a href={repository.url} target="_blank" rel="noreferrer" className="text-zinc-500 transition hover:text-violet-200">{repository.url}</a>
+              <a href={repository.url} target="_blank" rel="noreferrer" className="break-all text-zinc-500 transition hover:text-violet-200">{repository.url}</a>
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -188,7 +188,7 @@ function RepositoryDetailContent({ params }: { params: Promise<{ slug: string; r
         </div>
       </div>
 
-      <div className="mt-8 grid gap-5 sm:grid-cols-4">
+      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-5">
         <Card>
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Branch</p>
           <p className="mt-4 font-mono text-lg text-white">{repository.defaultBranch}</p>
@@ -199,19 +199,19 @@ function RepositoryDetailContent({ params }: { params: Promise<{ slug: string; r
         </Card>
         <Card>
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Commits</p>
-          <p className="mt-4 font-mono text-4xl text-white">{commits.length}</p>
+          <p className="mt-4 font-mono text-3xl text-white sm:text-4xl">{commits.length}</p>
         </Card>
         <Card>
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Unused</p>
-          <p className="mt-4 font-mono text-4xl text-white">{commits.length - usedCount}</p>
+          <p className="mt-4 font-mono text-3xl text-white sm:text-4xl">{commits.length - usedCount}</p>
         </Card>
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(380px,0.7fr)]">
         <div className="space-y-4">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <h2 className="font-mono text-lg text-white">Synced commits</h2>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <span className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">{unusedSelected} selected</span>
               <button
                 type="button"

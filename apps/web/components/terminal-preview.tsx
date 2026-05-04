@@ -1,6 +1,6 @@
 export function TerminalPreview() {
   return (
-    <div className="relative rounded-md border border-violet-200/50 bg-black/50 p-5 shadow-[0_0_42px_rgba(139,92,246,0.08)]">
+    <div className="relative overflow-hidden rounded-md border border-violet-200/50 bg-black/50 p-4 shadow-[0_0_42px_rgba(139,92,246,0.08)] sm:p-5">
       <div className="absolute -right-3 -top-3 h-5 w-5 border-r border-t border-violet-300" />
       <div className="flex items-center gap-3 border-b border-white/10 pb-4 font-mono text-xs text-zinc-400">
         <span className="h-3 w-3 rounded-full bg-zinc-600" />
@@ -8,14 +8,14 @@ export function TerminalPreview() {
         <span className="h-3 w-3 rounded-full bg-zinc-600" />
         <span className="ml-4">commitglow <span className="text-violet-300">--demo</span></span>
       </div>
-      <div className="space-y-5 pt-5 font-mono text-sm text-zinc-300">
+      <div className="space-y-5 pt-5 font-mono text-xs text-zinc-300 sm:text-sm">
         <div className="space-y-1">
           <p>&gt; Analyzing commits...</p>
           <p>&gt; Found 23 commits</p>
           <p>&gt; Generating release notes...</p>
         </div>
         <div className="border-y border-white/10 py-5">
-          <p className="text-2xl text-white">v1.4.0</p>
+          <p className="text-xl text-white sm:text-2xl">v1.4.0</p>
           <p className="mt-2 text-xs text-zinc-400">Released May 20, 2026</p>
         </div>
         <div className="space-y-4">

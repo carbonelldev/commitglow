@@ -234,7 +234,7 @@ export default async function ProvidersPage({ searchParams }: { searchParams: Pr
     <div className="mx-auto max-w-6xl">
       <div className="border-b border-white/10 pb-8">
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-violet-200">// Providers</p>
-        <h1 className="mt-4 font-mono text-4xl text-white">Provider connections</h1>
+        <h1 className="mt-4 font-mono text-3xl text-white sm:text-4xl">Provider connections</h1>
         <p className="mt-3 max-w-2xl text-zinc-400">Connect Git provider accounts for private access and all-provider search, or paste public Gitea repository URLs directly when attaching repositories.</p>
       </div>
 

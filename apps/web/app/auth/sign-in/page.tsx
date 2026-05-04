@@ -1,7 +1,17 @@
+import type { Metadata } from "next";
 import { AuthForm } from "@/components/auth-form";
 import { auth } from "@/lib/auth";
 import { AnchorButton } from "@commitglow/ui";
 import { headers } from "next/headers";
+
+export const metadata: Metadata = {
+  title: "Sign In | CommitGlow",
+  description: "Sign in to CommitGlow to generate release notes, changelogs, and launch posts from your commits.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export const dynamic = "force-dynamic";
 

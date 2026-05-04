@@ -7,6 +7,10 @@ import { httpStatusPages } from "@/lib/http-status-pages";
 export const metadata: Metadata = {
   title: "HTTP Error Pages | CommitGlow",
   description: "Branded CommitGlow pages for common HTTP status codes.",
+  robots: {
+    index: false,
+    follow: true,
+  },
 };
 
 export default function ErrorPagesIndex() {
@@ -19,7 +23,7 @@ export default function ErrorPagesIndex() {
         </p>
         <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="font-mono text-5xl leading-tight tracking-[-0.05em] text-white sm:text-6xl">
+            <h1 className="font-mono text-4xl leading-tight tracking-[-0.05em] text-white sm:text-6xl">
               Error states,
               <br />
               ready to support.

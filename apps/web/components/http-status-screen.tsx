@@ -14,9 +14,9 @@ export async function HttpStatusScreen({ page }: { page: HttpStatusPage }) {
           <p className="mb-8 w-fit rounded-sm border border-violet-300/30 bg-violet-500/10 px-3 py-2 font-mono text-xs uppercase tracking-[0.18em] text-violet-200">
             // HTTP {page.code} / {page.label}
           </p>
-          <h1 className="max-w-3xl font-mono text-5xl leading-tight tracking-[-0.05em] text-white sm:text-6xl lg:text-7xl">
+          <h1 className="max-w-3xl font-mono text-4xl leading-tight tracking-[-0.05em] text-white sm:text-6xl lg:text-7xl">
             {page.title}
-            <span className="cursor-blink ml-3 inline-block h-12 w-4 translate-y-2 bg-violet-400 sm:h-16" />
+            <span className="cursor-blink ml-2 inline-block h-10 w-3 translate-y-2 bg-violet-400 sm:ml-3 sm:h-16 sm:w-4" />
           </h1>
           <p className="mt-8 max-w-2xl font-mono text-base leading-8 text-zinc-400">
             {page.message}

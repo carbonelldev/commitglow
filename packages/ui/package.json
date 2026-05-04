@@ -8,7 +8,8 @@
     ".": "./src/index.ts",
     "./button": "./src/button.tsx",
     "./card": "./src/card.tsx",
-    "./input": "./src/input.tsx"
+    "./input": "./src/input.tsx",
+    "./select": "./src/select.tsx"
   },
   "scripts": {
     "build": "tsc --noEmit",

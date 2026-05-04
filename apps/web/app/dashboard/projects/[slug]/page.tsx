@@ -31,25 +31,25 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-violet-200">// Project</p>
         <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="font-mono text-4xl text-white">{project.name}</h1>
+            <h1 className="font-mono text-3xl text-white sm:text-4xl">{project.name}</h1>
             <p className="mt-3 max-w-2xl text-zinc-400">{project.description || `Overview for this project inside ${organization.name}. Use the project sidebar tabs to configure repositories, changelogs, and settings.`}</p>
           </div>
           <AnchorButton href="/dashboard/projects">All Projects</AnchorButton>
         </div>
       </div>
 
-      <div className="mt-8 grid gap-5 sm:grid-cols-4">
+      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-5">
         <Card id="repositories" className="scroll-mt-8">
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Repositories</p>
-          <p className="mt-4 font-mono text-4xl text-white">{repositoryCount?.value ?? 0}</p>
+          <p className="mt-4 font-mono text-3xl text-white sm:text-4xl">{repositoryCount?.value ?? 0}</p>
         </Card>
         <Card>
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Changelogs</p>
-          <p className="mt-4 font-mono text-4xl text-white">{changelogCount?.value ?? 0}</p>
+          <p className="mt-4 font-mono text-3xl text-white sm:text-4xl">{changelogCount?.value ?? 0}</p>
         </Card>
         <Card>
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Commits</p>
-          <p className="mt-4 font-mono text-4xl text-white">{commitCount?.value ?? 0}</p>
+          <p className="mt-4 font-mono text-3xl text-white sm:text-4xl">{commitCount?.value ?? 0}</p>
         </Card>
         <Card>
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Created</p>

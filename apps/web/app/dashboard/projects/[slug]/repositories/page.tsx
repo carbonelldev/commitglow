@@ -92,7 +92,7 @@ export default async function ProjectRepositoriesPage({ params }: { params: Prom
     <div className="mx-auto max-w-6xl">
       <div className="border-b border-white/10 pb-8">
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-violet-200">// Project Repositories</p>
-        <h1 className="mt-4 font-mono text-4xl text-white">{project.name}</h1>
+        <h1 className="mt-4 font-mono text-3xl text-white sm:text-4xl">{project.name}</h1>
         <p className="mt-3 max-w-2xl text-zinc-400">Attach repositories and sync commits to prepare for changelog generation.</p>
       </div>
 
@@ -118,11 +118,11 @@ export default async function ProjectRepositoriesPage({ params }: { params: Prom
                       <div>
                         <a
                           href={`/dashboard/projects/${project.slug}/repositories/${repository.id}`}
-                          className="font-mono text-base text-white transition hover:text-violet-200"
+                          className="break-all font-mono text-base text-white transition hover:text-violet-200 sm:break-normal"
                         >
                           {repository.owner}/{repository.name}
                         </a>
-                        <p className="mt-1 font-mono text-xs text-zinc-500">{repository.url}</p>
+                        <p className="mt-1 break-all font-mono text-xs text-zinc-500">{repository.url}</p>
                       </div>
                       <span className="shrink-0 font-mono text-xs text-zinc-600">{formatProjectDate(repository.createdAt)}</span>
                     </div>
@@ -133,7 +133,7 @@ export default async function ProjectRepositoriesPage({ params }: { params: Prom
                       <span className="rounded-sm border border-violet-300/20 bg-violet-500/10 px-2 py-1 text-violet-100">{commitCount} commit{commitCount === 1 ? "" : "s"}</span>
                     </div>
                     <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                         <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-700">
                           Last synced {formatProjectDate(repository.updatedAt)}
                         </span>
