@@ -1,35 +1,90 @@
+import { isIP } from "node:net";
 import { aiConfigured, changelogModel, changelogSystemPrompt, changelogUserPrompt } from "@/lib/ai";
+import { db } from "@/lib/db";
 import { buildEnglishReasoningTrace, getDemoCacheKey, readDemoCache, renderFallbackChangelog, reserveDemoCache, resolvePublicDemo, writeDemoCache } from "@/lib/public-demo";
+import { demoGenerationCache } from "@commitglow/db/schema";
 import { streamText } from "ai";
+import { and, eq, lte } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
-type RateLimitEntry = { count: number; resetAt: number };
-
-const demoRateLimits = new Map<string, RateLimitEntry>();
 const demoLimit = 5;
 const demoWindowMs = 60 * 60 * 1000;
 
 function getRequestIp(request: Request) {
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const trusted = request.headers.get("cf-connecting-ip") || request.headers.get("x-real-ip");
 
-  return forwarded || request.headers.get("x-real-ip") || "unknown";
+  if (trusted && isIP(trusted)) {
+    return trusted;
+  }
+
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",").map((value) => value.trim()).filter(Boolean).at(-1);
+
+  if (forwarded && isIP(forwarded)) {
+    return forwarded;
+  }
+
+  return "unknown";
 }
 
-function hitRateLimit(ip: string) {
+async function sha256(value: string) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+
+  return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function cleanupExpiredRateLimits(now: number) {
+  if (Math.random() > 0.02) {
+    return;
+  }
+
+  await db.delete(demoGenerationCache).where(and(eq(demoGenerationCache.owner, "demo-rate-limit"), lte(demoGenerationCache.updatedAt, new Date(now - demoWindowMs * 2))));
+}
+
+async function hitRateLimit(ip: string) {
   const now = Date.now();
-  const current = demoRateLimits.get(ip);
+  const keyHash = await sha256(ip);
+  const cacheKey = `rate-limit:${keyHash}`;
+  const nextResetAt = now + demoWindowMs;
 
-  if (!current || current.resetAt <= now) {
-    demoRateLimits.set(ip, { count: 1, resetAt: now + demoWindowMs });
-    return { limited: false, resetAt: now + demoWindowMs };
+  try {
+    await cleanupExpiredRateLimits(now);
+
+    const [current] = await db.select({ body: demoGenerationCache.body, metadata: demoGenerationCache.metadata }).from(demoGenerationCache).where(eq(demoGenerationCache.cacheKey, cacheKey)).limit(1);
+    const metadata = current?.metadata && typeof current.metadata === "object" ? current.metadata as Record<string, unknown> : {};
+    const currentResetAt = typeof metadata.resetAt === "string" ? Date.parse(metadata.resetAt) : 0;
+
+    if (!current || currentResetAt <= now) {
+      await db.insert(demoGenerationCache).values({
+        cacheKey,
+        provider: "github",
+        owner: "demo-rate-limit",
+        name: keyHash,
+        branch: "global",
+        commitFingerprint: "rate-limit",
+        commitCount: 0,
+        model: "rate-limit",
+        body: "1",
+        metadata: { status: "rate-limit", resetAt: new Date(nextResetAt).toISOString() },
+      }).onConflictDoUpdate({
+        target: demoGenerationCache.cacheKey,
+        set: { body: "1", metadata: { status: "rate-limit", resetAt: new Date(nextResetAt).toISOString() }, updatedAt: new Date() },
+      });
+
+      return { limited: false, resetAt: nextResetAt };
+    }
+
+    const count = Number.parseInt(current.body, 10) || 0;
+
+    if (count >= demoLimit) {
+      return { limited: true, resetAt: currentResetAt };
+    }
+
+    await db.update(demoGenerationCache).set({ body: String(count + 1), updatedAt: new Date() }).where(eq(demoGenerationCache.cacheKey, cacheKey));
+
+    return { limited: false, resetAt: currentResetAt };
+  } catch {
+    return { limited: false, resetAt: nextResetAt };
   }
-
-  if (current.count >= demoLimit) {
-    return { limited: true, resetAt: current.resetAt };
-  }
-
-  current.count += 1;
-  return { limited: false, resetAt: current.resetAt };
 }
 
 function getReasoningTrace(result: unknown) {
@@ -104,7 +159,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ body: cached.body, aiGenerated: cached.aiGenerated, reasoningTrace: cached.reasoningTrace, cached: true });
   }
 
-  const limit = hitRateLimit(getRequestIp(request));
+  const limit = await hitRateLimit(getRequestIp(request));
 
   if (limit.limited) {
     return NextResponse.json({ error: "Rate limit reached for this IP.", resetAt: new Date(limit.resetAt).toISOString() }, { status: 429 });

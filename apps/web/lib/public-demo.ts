@@ -1,3 +1,5 @@
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
 import { aiConfigured, changelogModel, changelogSystemPrompt, changelogUserPrompt } from "@/lib/ai";
 import { db } from "@/lib/db";
 import { demoGenerationCache } from "@commitglow/db/schema";
@@ -57,7 +59,65 @@ function isValidOwnerPath(value: string) {
 function isBlockedRepositoryHost(hostname: string) {
   const host = hostname.toLowerCase();
 
-  return host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") || host === "127.0.0.1" || host === "0.0.0.0" || host === "::1" || /^10\./.test(host) || /^192\.168\./.test(host) || /^172\.(1[6-9]|2\d|3[0-1])\./.test(host);
+  return host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") || isBlockedIpAddress(host);
+}
+
+function getIpv4Octets(value: string) {
+  if (isIP(value) !== 4) {
+    return null;
+  }
+
+  const octets = value.split(".").map(Number);
+
+  return octets.length === 4 && octets.every((octet) => Number.isInteger(octet) && octet >= 0 && octet <= 255) ? octets : null;
+}
+
+function isBlockedIpv4(value: string) {
+  const octets = getIpv4Octets(value);
+
+  if (!octets) {
+    return false;
+  }
+
+  const [first, second] = octets;
+
+  return first === 0 || first === 10 || first === 127 || (first === 100 && second >= 64 && second <= 127) || (first === 169 && second === 254) || (first === 172 && second >= 16 && second <= 31) || (first === 192 && second === 168) || (first === 198 && (second === 18 || second === 19));
+}
+
+function isBlockedIpAddress(value: string) {
+  const ip = value.replace(/^\[|\]$/g, "").toLowerCase();
+
+  if (isBlockedIpv4(ip)) {
+    return true;
+  }
+
+  const mappedIpv4 = ip.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/)?.[1];
+
+  if (mappedIpv4 && isBlockedIpv4(mappedIpv4)) {
+    return true;
+  }
+
+  if (isIP(ip) !== 6) {
+    return false;
+  }
+
+  return ip === "::" || ip === "::1" || ip.startsWith("fc") || ip.startsWith("fd") || /^fe[89ab]/.test(ip);
+}
+
+async function isBlockedRepositoryEndpoint(origin: string) {
+  const url = new URL(origin);
+
+  if (isBlockedRepositoryHost(url.hostname)) {
+    return true;
+  }
+
+  try {
+    const addresses = await lookup(url.hostname, { all: true, verbatim: true });
+
+    return addresses.some((address) => isBlockedIpAddress(address.address));
+  } catch {
+    return true;
+  }
 }
 
 function headersFor(provider: PublicGitProvider): HeadersInit {
@@ -76,7 +136,7 @@ function headersFor(provider: PublicGitProvider): HeadersInit {
 }
 
 function parseProviderPrefix(value: string): ParsedPublicRepository | null {
-  const match = value.match(/^(github|gitlab|bitbucket|gitea):(.+)$/i);
+  const match = value.match(/^(github|gitlab|bitbucket):(.+)$/i);
 
   if (!match) {
     return null;
@@ -219,6 +279,10 @@ async function lookupPublicRepository(repository: ParsedPublicRepository): Promi
   } else if (repository.provider === "bitbucket") {
     result = await fetchJsonObject(`https://api.bitbucket.org/2.0/repositories/${repository.owner}/${repository.name}`, headersFor("bitbucket"));
   } else {
+    if (await isBlockedRepositoryEndpoint(getGiteaApiBase(repository))) {
+      return null;
+    }
+
     result = await fetchJsonObject(`${getGiteaApiBase(repository)}/api/v1/repos/${repository.owner}/${repository.name}`, headersFor("gitea"));
   }
 
@@ -257,6 +321,10 @@ export async function listPublicCommits(repository: RepositoryLookup) {
     const response = await fetchJsonObject(`https://api.bitbucket.org/2.0/repositories/${repository.owner}/${repository.name}/commits/${encodeURIComponent(repository.defaultBranch)}?pagelen=18`, headersFor("bitbucket"));
     const values = response.ok && response.data && Array.isArray(response.data.values) ? response.data.values as Array<Record<string, unknown>> : [];
     return values.flatMap(normalizeBitbucketCommit);
+  }
+
+  if (await isBlockedRepositoryEndpoint(getGiteaApiBase(repository))) {
+    return [];
   }
 
   const response = await fetchJsonArray(`${getGiteaApiBase(repository)}/api/v1/repos/${repository.owner}/${repository.name}/commits?sha=${encodeURIComponent(repository.defaultBranch)}&limit=18`, headersFor("gitea"));
