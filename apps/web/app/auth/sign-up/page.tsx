@@ -20,7 +20,10 @@ function AuthShell({ children }: { children: React.ReactNode }) {
     <main className="min-h-screen px-5 py-8">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between font-mono text-xs uppercase tracking-[0.18em]">
         <a href="/" className="text-white transition hover:text-violet-200">&gt;_ CommitGlow</a>
-        <a href="/" className="text-zinc-500 transition hover:text-white">&lt;- Back</a>
+        <div className="flex items-center gap-5">
+          <a href="/demo" className="text-violet-200 transition hover:text-white">Try Demo</a>
+          <a href="/" className="text-zinc-500 transition hover:text-white">&lt;- Back</a>
+        </div>
       </div>
       <div className="auth-panel-enter mx-auto flex min-h-[calc(100vh-7rem)] w-full max-w-6xl items-center justify-center py-10">
         {children}

@@ -41,8 +41,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    site: seo.twitter.site,
-    creator: seo.twitter.creator,
     title: seo.title.default,
     description: seo.description,
     images: ["/opengraph-image.png"],

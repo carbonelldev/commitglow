@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Card } from "@commitglow/ui";
+import { AnchorButton, Card } from "@commitglow/ui";
 import { planList, plans } from "@/lib/plans";
 import { isPolarCheckoutConfigured } from "@/lib/polar-billing";
 import type { PaidPlanSlug } from "@/lib/plans";
@@ -72,6 +72,14 @@ function CheckIcon() {
   );
 }
 
+function ArrowRightIcon() {
+  return (
+    <svg aria-hidden="true" className="h-3.5 w-3.5" fill="none" viewBox="0 0 16 16">
+      <path d="M3 8h10m0 0L9 4m4 4-4 4" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
 const tierData = planList.map((tier) => {
   const checkoutSlug = "checkoutSlug" in tier ? (tier.checkoutSlug as PaidPlanSlug | undefined) : undefined;
   const polarConfigured = checkoutSlug ? isPolarCheckoutConfigured(checkoutSlug) : false;
@@ -101,7 +109,7 @@ const enterpriseTier = {
   },
   checkoutSlug: undefined,
   polarConfigured: false,
-  contactHref: "mailto:sales@commitglow.ai?subject=CommitGlow%20Enterprise",
+  contactHref: `mailto:${seo.salesEmail}?subject=CommitGlow%20Enterprise`,
 } as const;
 
 const pricingTierData = [...tierData, enterpriseTier];
@@ -119,7 +127,32 @@ export default function PricingPage() {
           <p className="mx-auto mt-5 max-w-2xl font-mono text-sm leading-7 text-zinc-400 sm:text-base">
             Start free. Upgrade when your releases need more polish.
           </p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <AnchorButton href="/demo" variant="primary" className="group w-full sm:w-auto">
+              <span>Try Demo Before Pricing</span>
+              <ArrowRightIcon />
+            </AnchorButton>
+            <AnchorButton href="/demo?repo=vercel%2Fnext.js" className="group w-full sm:w-auto">
+              <span>Open Example</span>
+              <ArrowRightIcon />
+            </AnchorButton>
+          </div>
+          <p className="mx-auto mt-4 max-w-xl font-mono text-xs leading-6 text-zinc-500">
+            No registration required for public GitHub repos. Private repos and saved history start after sign-up.
+          </p>
           <PricingCurrentPlanBadge />
+        </div>
+      </section>
+
+      <section className="mx-auto w-full max-w-7xl border-x border-b border-white/10 px-5 py-6 sm:px-8">
+        <div className="flex flex-col gap-4 rounded-sm border border-violet-300/20 bg-violet-500/10 p-4 font-mono sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm leading-7 text-zinc-300">
+            Not ready to pick a plan? Run the free public repo demo and share the generated preview URL.
+          </p>
+          <AnchorButton href="/demo" className="group w-full shrink-0 sm:w-auto">
+            <span>Launch Demo</span>
+            <ArrowRightIcon />
+          </AnchorButton>
         </div>
       </section>
 

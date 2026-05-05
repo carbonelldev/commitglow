@@ -36,6 +36,13 @@
       "when": 1777865403578,
       "tag": "0004_handy_grey_gargoyle",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1777938707664,
+      "tag": "0005_safe_penance",
+      "breakpoints": true
     }
   ]
 }
