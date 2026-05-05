@@ -32,11 +32,21 @@ export function OrganizationJsonLd() {
     "@type": "Organization",
     name: seo.siteName,
     url: seo.siteUrl,
+    email: seo.contactEmail,
     logo: `${seo.siteUrl}/favicon-96x96.png`,
-    sameAs: [
-      "https://github.com/carbonelldev/commitglow",
-      seo.twitter.site ? `https://twitter.com/${seo.twitter.site.replace("@", "")}` : undefined,
-    ].filter(Boolean),
+    contactPoint: [
+      {
+        "@type": "ContactPoint",
+        email: seo.contactEmail,
+        contactType: "customer support",
+      },
+      {
+        "@type": "ContactPoint",
+        email: seo.salesEmail,
+        contactType: "sales",
+      },
+    ],
+    sameAs: ["https://github.com/carbonelldev/commitglow"],
   };
 
   return (

@@ -43,10 +43,10 @@ export function HomepageCtaButtons() {
   const { isPending, isAuthenticated } = useAuthState();
   const primaryHref = isPending || !isAuthenticated ? "/auth/sign-up" : "/dashboard";
   const primaryLabel = isPending || !isAuthenticated ? "Start a Changelog" : "Open Dashboard";
-  const secondaryHref = isPending || !isAuthenticated ? "#how" : "/dashboard/projects";
-  const secondaryLabel = isPending || !isAuthenticated ? "See Workflow" : "Projects";
+  const secondaryHref = isPending || !isAuthenticated ? "/demo" : "/dashboard/projects";
+  const secondaryLabel = isPending || !isAuthenticated ? "Try Demo" : "Projects";
   const notice = isPending || !isAuthenticated
-    ? "Start free, then create a project and sync your first repository."
+    ? "Try a public repo without registration, or sign up to save drafts."
     : "You are signed in. Continue where you left off.";
 
   return (

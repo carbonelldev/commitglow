@@ -7,6 +7,28 @@ export const providerEnum = pgEnum("provider", ["github", "gitlab", "bitbucket",
 export const outputTypeEnum = pgEnum("output_type", ["release_notes", "changelog", "social_post", "email_update", "update_card"]);
 export const usageEventTypeEnum = pgEnum("usage_event_type", ["generation", "repo_sync", "export"]);
 
+export const demoGenerationCache = pgTable(
+  "demo_generation_cache",
+  {
+    cacheKey: text("cache_key").primaryKey(),
+    provider: providerEnum("provider").notNull().default("github"),
+    owner: text("owner").notNull(),
+    name: text("name").notNull(),
+    branch: text("branch").notNull(),
+    commitFingerprint: text("commit_fingerprint").notNull(),
+    commitCount: integer("commit_count").notNull(),
+    model: text("model").notNull(),
+    body: text("body").notNull(),
+    metadata: jsonb("metadata"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow()
+  },
+  (table) => [
+    index("demo_generation_cache_repo_idx").on(table.provider, table.owner, table.name, table.branch),
+    index("demo_generation_cache_updated_at_idx").on(table.updatedAt)
+  ]
+);
+
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),

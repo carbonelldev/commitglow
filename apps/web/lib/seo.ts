@@ -1,4 +1,4 @@
-const DEFAULT_PROD_URL = "https://commitglow.ai";
+const DEFAULT_PROD_URL = "https://commitglow.dev";
 
 export function getSiteUrl() {
   if (process.env.NEXT_PUBLIC_SITE_URL) {
@@ -19,6 +19,8 @@ export function getSiteUrl() {
 export const seo = {
   siteName: "CommitGlow",
   siteUrl: getSiteUrl(),
+  contactEmail: "hi@commitglow.dev",
+  salesEmail: "sales@commitglow.dev",
   title: {
     default: "CommitGlow — AI Changelog & Release Notes Generator for Developers",
     template: "%s | CommitGlow",
@@ -37,10 +39,6 @@ export const seo = {
     "markdown release notes",
     "devtools",
   ],
-  twitter: {
-    site: "@commitglow",
-    creator: "@commitglow",
-  },
   robots: {
     index: true,
     follow: true,

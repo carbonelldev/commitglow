@@ -291,6 +291,48 @@ function MiniDemo() {
   );
 }
 
+function PublicDemoBanner() {
+  return (
+    <section className="mx-auto w-full max-w-7xl border-t border-white/10 px-5 py-12 sm:px-8">
+      <div className="relative overflow-hidden rounded-md border border-violet-300/30 bg-[radial-gradient(circle_at_20%_20%,rgba(196,181,253,0.18),transparent_30%),linear-gradient(135deg,rgba(139,92,246,0.18),rgba(0,0,0,0.3)_55%)] p-5 sm:p-8">
+        <div className="absolute right-6 top-6 hidden font-mono text-7xl tracking-[-0.08em] text-white/[0.035] lg:block">DEMO</div>
+        <div className="relative grid gap-8 lg:grid-cols-[0.75fr_1fr] lg:items-center">
+          <div>
+            <p className="font-mono text-xs uppercase tracking-[0.18em] text-violet-200">// Free public repo preview</p>
+            <h2 className="mt-5 max-w-2xl font-mono text-3xl leading-tight tracking-[-0.05em] text-white sm:text-5xl">
+              Show it a repo before you show it your email.
+            </h2>
+            <p className="mt-5 max-w-xl font-mono text-sm leading-7 text-zinc-300">
+              Run CommitGlow against any public GitHub repository, get a markdown preview, and share the exact result URL with your team.
+            </p>
+          </div>
+          <div className="rounded-sm border border-white/10 bg-black/40 p-4 font-mono">
+            <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-4 text-[10px] uppercase tracking-[0.14em] text-zinc-500">
+              <span className="rounded-sm border border-violet-300/30 bg-violet-500/10 px-2 py-1 text-violet-100">No sign-up</span>
+              <span>Public GitHub only</span>
+              <span>5 demos / IP / hour</span>
+            </div>
+            <pre className="overflow-hidden pt-5 text-sm leading-7 text-zinc-300">{String.raw`repo: vercel/next.js
+commits: 18 recent
+output: shareable changelog preview`}</pre>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <AnchorButton href="/demo" variant="primary" className="group w-full sm:w-auto">
+                <PromptIcon />
+                <span>Try Public Demo</span>
+                <ArrowRightIcon />
+              </AnchorButton>
+              <AnchorButton href="/demo?repo=vercel%2Fnext.js" className="group w-full sm:w-auto">
+                <span>Open Example</span>
+                <ArrowRightIcon />
+              </AnchorButton>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   return (
     <main className="min-h-screen overflow-hidden">
@@ -305,6 +347,9 @@ export default function Home() {
             Connect a repository, select the commits that matter, and let CommitGlow draft clean release notes with streamed AI generation and markdown output.
           </p>
           <HomepageCtaButtons />
+          <a href="/demo" className="mt-5 w-fit font-mono text-xs uppercase tracking-[0.14em] text-violet-200 underline-offset-4 transition hover:text-white hover:underline">
+            Try a public repo first, no account needed -&gt;
+          </a>
           <div className="mt-8 flex flex-wrap gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-600">
             <span className="rounded-sm border border-white/10 px-2.5 py-1.5">Repository sync</span>
             <span className="rounded-sm border border-white/10 px-2.5 py-1.5">Commit selection</span>
@@ -359,6 +404,8 @@ export default function Home() {
       </section>
 
       <MiniDemo />
+
+      <PublicDemoBanner />
 
       <section className="mx-auto grid w-full max-w-7xl gap-8 border-t border-white/10 px-5 py-12 sm:px-8 lg:grid-cols-[0.8fr_1fr]">
         <div>

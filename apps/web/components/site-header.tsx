@@ -67,6 +67,7 @@ export async function SiteHeader({ isAuthenticated = false }: { isAuthenticated?
       <a href="/" className="text-white">&gt;_ CommitGlow</a>
       <nav className="hidden items-center gap-10 md:flex">
         <a className="text-violet-200" href="/#features">[ Features ]</a>
+        <a href="/demo">Demo</a>
         <a href="/#how">How it Works</a>
         <a href="/pricing">Pricing</a>
       </nav>
@@ -80,6 +81,11 @@ export async function SiteHeader({ isAuthenticated = false }: { isAuthenticated?
           <StarIcon />
           <span>{github.stars === null ? "GitHub" : formatStars(github.stars)}</span>
         </a>
+        {!isAuthenticated ? (
+          <AnchorButton href="/demo" variant="primary">
+            Try Demo
+          </AnchorButton>
+        ) : null}
         <AnchorButton href={actionHref}>
           {actionLabel}
         </AnchorButton>
@@ -92,6 +98,7 @@ export async function SiteHeader({ isAuthenticated = false }: { isAuthenticated?
         <div className="absolute right-0 top-full z-50 mt-3 w-[calc(100vw-2.5rem)] max-w-sm overflow-hidden rounded-sm border border-violet-300/25 bg-[#050507]/98 shadow-[0_24px_80px_rgba(0,0,0,0.55),0_0_40px_rgba(139,92,246,0.12)] backdrop-blur">
           <nav className="grid border-b border-white/10" aria-label="Mobile navigation">
             <a className="px-4 py-4 text-violet-200 transition hover:bg-white/[0.03] hover:text-white" href="/#features">[ Features ]</a>
+            <a className="px-4 py-4 transition hover:bg-white/[0.03] hover:text-white" href="/demo">Demo</a>
             <a className="px-4 py-4 transition hover:bg-white/[0.03] hover:text-white" href="/#how">How it Works</a>
             <a className="px-4 py-4 transition hover:bg-white/[0.03] hover:text-white" href="/pricing">Pricing</a>
           </nav>
@@ -105,6 +112,11 @@ export async function SiteHeader({ isAuthenticated = false }: { isAuthenticated?
               <StarIcon />
               <span>{github.stars === null ? "GitHub" : `${formatStars(github.stars)} Stars`}</span>
             </a>
+            {!isAuthenticated ? (
+              <AnchorButton href="/demo" variant="primary" className="w-full">
+                Try Demo
+              </AnchorButton>
+            ) : null}
             <AnchorButton href={actionHref} className="w-full">
               {actionLabel}
             </AnchorButton>
