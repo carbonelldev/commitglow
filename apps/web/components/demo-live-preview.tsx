@@ -262,18 +262,6 @@ export function DemoLivePreview({ repoInput, shareHref }: { repoInput: string; s
   }, [repoInput]);
 
   useEffect(() => {
-    if (!repoInput || phase !== "done" || !output.trim() || context?.cached) {
-      return;
-    }
-
-    void fetch("/api/demo/cache", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ repo: repoInput, markdown: output, reasoningTrace: reasoning, aiGenerated: context?.aiGenerated ?? true }),
-    });
-  }, [context?.aiGenerated, context?.cached, output, phase, reasoning, repoInput]);
-
-  useEffect(() => {
     if (phase === "idle") return;
 
     const animationFrame = requestAnimationFrame(() => {
