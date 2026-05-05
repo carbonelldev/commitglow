@@ -2,11 +2,24 @@ import { getSettingsSnapshot } from "@/app/dashboard/settings/actions";
 import { AccountSettingsForm } from "@/components/account-settings-form";
 import { BillingPortalButton } from "@/components/billing-portal-button";
 import { env } from "@/lib/env";
+import { formatUsageResetDate, getPlanUsageSnapshot, type PlanLimitUsage } from "@/lib/plan-usage";
 import { plans, toPlanSlug } from "@/lib/plans";
 import { AnchorButton, Card } from "@commitglow/ui";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
+
+function UsageSummaryRow({ label, usage }: { label: string; usage: PlanLimitUsage }) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-t border-white/10 py-3 first:border-t-0 first:pt-0 last:pb-0">
+      <div>
+        <p className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">{label}</p>
+        <p className="mt-1 text-xs leading-5 text-zinc-600">{usage.remainingLabel}</p>
+      </div>
+      <span className="shrink-0 rounded-sm border border-white/10 bg-black/30 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-400">{usage.label}</span>
+    </div>
+  );
+}
 
 export default async function AccountPage() {
   const snapshot = await getSettingsSnapshot();
@@ -19,6 +32,7 @@ export default async function AccountPage() {
   const plan = plans[activePlan];
   const isFree = activePlan === "free";
   const polarConfigured = Boolean(env.polarAccessToken);
+  const usage = await getPlanUsageSnapshot(snapshot.user, snapshot.organization);
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -66,6 +80,20 @@ export default async function AccountPage() {
                 Includes {plan.includedGenerations} generations per month{plan.overagePriceUsd === null ? "." : `, then $${plan.overagePriceUsd.toFixed(2)} per extra generation.`}
               </p>
               <p className="mt-2 text-xs leading-5 text-zinc-500">{plan.billingDisclosure}</p>
+            </div>
+            <div className="mt-4 rounded-sm border border-white/10 bg-black/20 p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-600">Usage snapshot</p>
+                <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-600">Resets {formatUsageResetDate(usage.resetAt)}</span>
+              </div>
+              <UsageSummaryRow label="Generations" usage={usage.generations} />
+              <UsageSummaryRow label="Workspaces" usage={usage.workspaces} />
+              <UsageSummaryRow label="Projects" usage={usage.projects} />
+              <UsageSummaryRow label="Providers" usage={usage.providerAccounts} />
+              <div className="mt-3 grid grid-cols-2 gap-2 border-t border-white/10 pt-3 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-600">
+                <span>Repos: <span className="text-zinc-300">{usage.repositories.used}</span></span>
+                <span>Changelogs: <span className="text-zinc-300">{usage.changelogs.used}</span></span>
+              </div>
             </div>
             {!isFree ? <BillingPortalButton configured={polarConfigured} /> : null}
           </div>

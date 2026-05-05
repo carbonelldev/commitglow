@@ -3,9 +3,9 @@ import { auth } from "@/lib/auth";
 import { DashboardNav } from "@/components/dashboard-nav";
 import { db } from "@/lib/db";
 import { getActiveOrganization } from "@/lib/organizations";
-import { formatWorkspaceLimit, getWorkspaceLimit, toPlanSlug } from "@/lib/plans";
-import { organizations as organizationTable, projects, repositories } from "@commitglow/db/schema";
-import { asc, count, desc, eq } from "drizzle-orm";
+import { getPlanUsageSnapshot } from "@/lib/plan-usage";
+import { projects, repositories } from "@commitglow/db/schema";
+import { asc, desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -27,9 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const organizationContext = await getActiveOrganization(session.user);
   const organization = organizationContext.active;
-  const accountPlan = toPlanSlug(session.user.plan);
-  const workspaceLimit = getWorkspaceLimit(accountPlan);
-  const [ownedWorkspaceCount] = await db.select({ value: count() }).from(organizationTable).where(eq(organizationTable.ownerId, session.user.id));
+  const usage = await getPlanUsageSnapshot(session.user, organization);
   const userProjects = await db
     .select({
       id: projects.id,
@@ -66,9 +64,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
         organization={{ id: organization.id, name: organization.name }}
         organizations={organizationContext.organizations.map((item) => ({ id: item.id, name: item.name, role: item.role }))}
         workspaceLimit={{
-          count: ownedWorkspaceCount?.value ?? 0,
-          label: formatWorkspaceLimit(accountPlan),
-          reached: workspaceLimit !== null && (ownedWorkspaceCount?.value ?? 0) >= workspaceLimit
+          count: usage.workspaces.used,
+          label: usage.workspaces.limit === null ? "Unlimited" : String(usage.workspaces.limit),
+          reached: usage.workspaces.reached
+        }}
+        usageSummary={{
+          generations: usage.generations.remainingLabel,
+          generationsUsed: usage.generations.label,
+          projects: usage.projects.remainingLabel,
+          providers: usage.providerAccounts.remainingLabel
         }}
         projects={sidebarProjects}
       />

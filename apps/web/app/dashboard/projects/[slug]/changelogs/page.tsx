@@ -1,6 +1,8 @@
 import { ConnectGitHubButton } from "@/components/connect-github-button";
+import { ChangelogShareActions } from "@/components/changelog-share-actions";
 import { ManualChangelogForm } from "@/components/manual-changelog-form";
 import { db } from "@/lib/db";
+import { getSiteUrl } from "@/lib/seo";
 import { formatProjectDate, getProjectContext } from "@/lib/project-context";
 import { AnchorButton, Card } from "@commitglow/ui";
 import { changelogs, repositories } from "@commitglow/db/schema";
@@ -43,6 +45,8 @@ export default async function ProjectChangelogsPage({ params }: { params: Promis
   if (!project) {
     notFound();
   }
+
+  const pageUrl = `${getSiteUrl()}/dashboard/projects/${project.slug}/changelogs`;
 
   const projectChangelogs = await db
     .select({
@@ -135,6 +139,16 @@ export default async function ProjectChangelogsPage({ params }: { params: Promis
                         <pre className="whitespace-pre-wrap break-words font-mono text-xs leading-6 text-zinc-400">{changelog.body}</pre>
                       </div>
                     </details>
+
+                    <ChangelogShareActions
+                      title={changelog.title}
+                      version={changelog.version}
+                      body={changelog.body}
+                      source={source}
+                      url={pageUrl}
+                      className="mt-4"
+                      compact
+                    />
                   </article>
                 );
               })}

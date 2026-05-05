@@ -38,6 +38,12 @@ type DashboardNavProps = {
     label: string;
     reached: boolean;
   };
+  usageSummary: {
+    generations: string;
+    generationsUsed: string;
+    projects: string;
+    providers: string;
+  };
   projects: SidebarProject[];
 };
 
@@ -148,7 +154,7 @@ function sectionTitle(label: string, count?: number) {
   );
 }
 
-export function DashboardNav({ identity, organization, organizations, workspaceLimit, projects }: DashboardNavProps) {
+export function DashboardNav({ identity, organization, organizations, workspaceLimit, usageSummary, projects }: DashboardNavProps) {
   const pathname = usePathname();
   const accountPlan = toPlanSlug(identity.plan);
   const isFreePlan = accountPlan === "free";
@@ -432,6 +438,17 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
               <p className="truncate text-[11px] text-zinc-500">{isFreePlan ? "More workspaces" : plans[accountPlan].label}</p>
             </div>
             <span className="shrink-0 rounded-sm border border-white/10 bg-black/20 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-zinc-400">{accountPlan}</span>
+          </a>
+          <a href="/dashboard/account" className="mb-3 block rounded-sm border border-white/10 bg-black/25 p-3 transition hover:border-violet-300/35 hover:bg-white/[0.03]">
+            <div className="flex items-center justify-between gap-3">
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-600">Usage</p>
+              <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-zinc-600">{usageSummary.generationsUsed}</span>
+            </div>
+            <p className="mt-2 truncate font-mono text-xs text-white">{usageSummary.generations}</p>
+            <div className="mt-3 grid gap-1 font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-600">
+              <span className="truncate">{usageSummary.projects}</span>
+              <span className="truncate">{usageSummary.providers}</span>
+            </div>
           </a>
           <details className="group/profile relative">
             <summary className="flex cursor-pointer list-none items-center gap-3 rounded-sm border border-white/10 bg-black/30 px-2 py-2 transition hover:border-violet-300/50 hover:bg-white/[0.03] group-open/profile:border-violet-300/40 group-open/profile:bg-violet-500/[0.06] [&::-webkit-details-marker]:hidden">

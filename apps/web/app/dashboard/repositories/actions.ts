@@ -522,6 +522,101 @@ function normalizeCommit(provider: GitProvider, entry: Record<string, unknown>) 
   };
 }
 
+function formatFileChangeSummary(files: Array<{ path: string; status: string; additions?: number | null; deletions?: number | null; previousPath?: string | null }>) {
+  const capped = files.slice(0, 24);
+  const lines = capped.map((file) => {
+    const stats = typeof file.additions === "number" || typeof file.deletions === "number" ? ` (+${file.additions ?? 0}/-${file.deletions ?? 0})` : "";
+    const rename = file.previousPath && file.previousPath !== file.path ? ` from ${file.previousPath}` : "";
+
+    return `- ${file.status}: ${file.path}${rename}${stats}`;
+  });
+
+  if (files.length > capped.length) {
+    lines.push(`- ${files.length - capped.length} more changed file${files.length - capped.length === 1 ? "" : "s"} omitted.`);
+  }
+
+  return lines.join("\n").slice(0, 2000);
+}
+
+function pathFromBitbucketFile(value: unknown) {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const path = (value as Record<string, unknown>).path;
+
+  return typeof path === "string" ? path : null;
+}
+
+async function getCommitChangeSummary(repository: ParsedGitRepository, sha: string, accessToken?: string | null) {
+  if (repository.provider === "github") {
+    const response = await fetchJsonObject(`https://api.github.com/repos/${repository.owner}/${repository.name}/commits/${encodeURIComponent(sha)}`, githubHeaders(accessToken));
+    const files = response.ok && response.data && Array.isArray(response.data.files) ? response.data.files as Array<Record<string, unknown>> : [];
+
+    return formatFileChangeSummary(files.flatMap((file) => {
+      const path = typeof file.filename === "string" ? file.filename : "";
+
+      return path ? [{
+        path,
+        status: typeof file.status === "string" ? file.status : "modified",
+        additions: typeof file.additions === "number" ? file.additions : null,
+        deletions: typeof file.deletions === "number" ? file.deletions : null,
+        previousPath: typeof file.previous_filename === "string" ? file.previous_filename : null
+      }] : [];
+    }));
+  }
+
+  if (repository.provider === "gitea") {
+    const response = await fetchJsonObject(`${repository.apiBaseUrl}/api/v1/repos/${repository.owner}/${repository.name}/commits/${encodeURIComponent(sha)}`, providerHeaders("gitea", accessToken));
+    const files = response.ok && response.data && Array.isArray(response.data.files) ? response.data.files as Array<Record<string, unknown>> : [];
+
+    return formatFileChangeSummary(files.flatMap((file) => {
+      const path = typeof file.filename === "string" ? file.filename : "";
+
+      return path ? [{
+        path,
+        status: typeof file.status === "string" ? file.status : "modified",
+        additions: typeof file.additions === "number" ? file.additions : null,
+        deletions: typeof file.deletions === "number" ? file.deletions : null,
+        previousPath: typeof file.previous_filename === "string" ? file.previous_filename : null
+      }] : [];
+    }));
+  }
+
+  if (repository.provider === "gitlab") {
+    const response = await fetch(`${`https://gitlab.com/api/v4/projects/${getGitLabProjectPath(repository)}/repository/commits/${encodeURIComponent(sha)}/diff`}`, { headers: providerHeaders("gitlab", accessToken), cache: "no-store" });
+
+    if (!response.ok) {
+      return "";
+    }
+
+    const payload = await response.json() as unknown;
+    const files = Array.isArray(payload) ? payload as Array<Record<string, unknown>> : [];
+
+    return formatFileChangeSummary(files.flatMap((file) => {
+      const path = typeof file.new_path === "string" ? file.new_path : typeof file.old_path === "string" ? file.old_path : "";
+      const status = file.new_file === true ? "added" : file.deleted_file === true ? "deleted" : file.renamed_file === true ? "renamed" : "modified";
+
+      return path ? [{ path, status, previousPath: typeof file.old_path === "string" ? file.old_path : null }] : [];
+    }));
+  }
+
+  const response = await fetchJsonObject(`https://api.bitbucket.org/2.0/repositories/${repository.owner}/${repository.name}/diffstat/${encodeURIComponent(sha)}`, providerHeaders("bitbucket", accessToken));
+  const values = response.ok && response.data && Array.isArray(response.data.values) ? response.data.values as Array<Record<string, unknown>> : [];
+
+  return formatFileChangeSummary(values.flatMap((file) => {
+    const path = pathFromBitbucketFile(file.new) ?? pathFromBitbucketFile(file.old) ?? "";
+
+    return path ? [{
+      path,
+      status: typeof file.status === "string" ? file.status : "modified",
+      additions: typeof file.lines_added === "number" ? file.lines_added : null,
+      deletions: typeof file.lines_removed === "number" ? file.lines_removed : null,
+      previousPath: pathFromBitbucketFile(file.old)
+    }] : [];
+  }));
+}
+
 export async function searchGitHubRepositories(query: string): Promise<{ status: "success" | "error"; message: string; repositories: GitHubRepositorySearchResult[] }> {
   const session = await auth.api.getSession({ headers: await headers() });
 
@@ -851,6 +946,7 @@ export async function syncRepositoryCommits(repositoryId: string): Promise<SyncC
 
   const payload = response.items;
   let inserted = 0;
+  let detailedSummariesFetched = 0;
 
   for (const entry of payload) {
     const commit = normalizeCommit(repository.provider, entry);
@@ -870,6 +966,9 @@ export async function syncRepositoryCommits(repositoryId: string): Promise<SyncC
       continue;
     }
 
+    const changeSummary = detailedSummariesFetched < 60 ? await getCommitChangeSummary(parsedRepository, sha, githubAuth?.accessToken).catch(() => "") : "";
+    detailedSummariesFetched += 1;
+
     await db.insert(commits).values({
       id: crypto.randomUUID(),
       repositoryId: repository.id,
@@ -881,7 +980,8 @@ export async function syncRepositoryCommits(repositoryId: string): Promise<SyncC
       url: commit.url,
       metadata: {
         syncedAt: new Date().toISOString(),
-        branch: repository.defaultBranch
+        branch: repository.defaultBranch,
+        ...(changeSummary ? { changeSummary } : {})
       }
     });
 

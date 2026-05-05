@@ -3,6 +3,7 @@
 import { Streamdown } from "streamdown";
 import { code } from "@streamdown/code";
 import { useEffect, useRef, useState } from "react";
+import { ChangelogShareActions } from "@/components/changelog-share-actions";
 import { ShareDemoLink } from "@/components/share-demo-link";
 import type { DemoCommit, PublicGitProvider } from "@/lib/public-demo";
 
@@ -380,6 +381,17 @@ export function DemoLivePreview({ repoInput, shareHref }: { repoInput: string; s
               <><SkeletonLines /><p className="mt-4 font-mono text-xs uppercase tracking-[0.14em] text-zinc-600">{phase === "reading" ? "Reading public repository..." : phase === "reasoning" ? "Preparing AI stream..." : "Waiting for markdown..."}</p></>
             )}
           </div>
+
+          {phase === "done" && output && context ? (
+            <ChangelogShareActions
+              title={`${context.repo} changelog`}
+              version={context.defaultBranch}
+              body={output}
+              source={context.repo}
+              url={shareHref}
+              className="mt-4"
+            />
+          ) : null}
         </div>
       </div>
     </div>

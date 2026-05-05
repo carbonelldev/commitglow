@@ -53,6 +53,73 @@ function formatDate(value: string | null) {
   }).format(new Date(value));
 }
 
+function SkeletonBlock({ className }: { className: string }) {
+  return <div className={["ai-skeleton rounded-sm bg-white/10", className].join(" ")} />;
+}
+
+function RepositoryLoadingSkeleton() {
+  return (
+    <div className="mx-auto max-w-6xl" aria-busy="true" aria-label="Loading repository data">
+      <div className="border-b border-white/10 pb-8">
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="font-mono text-xs uppercase tracking-[0.18em] text-violet-200">// Repository</p>
+          <SkeletonBlock className="h-7 w-24" />
+        </div>
+        <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0 flex-1">
+            <SkeletonBlock className="h-9 w-4/5 max-w-xl sm:h-10" />
+            <SkeletonBlock className="mt-4 h-4 w-full max-w-lg" />
+          </div>
+          <SkeletonBlock className="h-9 w-28" />
+        </div>
+      </div>
+
+      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-5">
+        {Array.from({ length: 4 }, (_, index) => (
+          <Card key={index}>
+            <SkeletonBlock className="h-3 w-20" />
+            <SkeletonBlock className="mt-4 h-8 w-24" />
+          </Card>
+        ))}
+      </div>
+
+      <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(380px,0.7fr)]">
+        <div className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <SkeletonBlock className="h-6 w-40" />
+            <div className="flex flex-wrap items-center gap-3">
+              <SkeletonBlock className="h-4 w-20" />
+              <SkeletonBlock className="h-7 w-24" />
+            </div>
+          </div>
+          <div className="space-y-1.5 pr-1">
+            {Array.from({ length: 6 }, (_, index) => (
+              <div key={index} className="flex items-start gap-3 rounded-sm border border-white/10 bg-white/[0.02] p-3">
+                <SkeletonBlock className="mt-0.5 h-4 w-4 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <SkeletonBlock className="h-4 w-11/12" />
+                  <SkeletonBlock className="mt-2 h-3 w-7/12" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <Card>
+          <div className="mb-5 flex items-center justify-between gap-4">
+            <SkeletonBlock className="h-6 w-44" />
+            <SkeletonBlock className="h-4 w-20" />
+          </div>
+          <div className="space-y-3">
+            <SkeletonBlock className="h-24 w-full" />
+            <SkeletonBlock className="h-10 w-full" />
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
 export default function RepositoryDetailPage({ params }: { params: Promise<{ slug: string; repoId: string }> }) {
   return <RepositoryDetailContent params={params} />;
 }
@@ -144,14 +211,7 @@ function RepositoryDetailContent({ params }: { params: Promise<{ slug: string; r
   }, [repository?.id, refreshRepositoryData]);
 
   if (loading) {
-    return (
-      <div className="mx-auto max-w-6xl">
-        <div className="border-b border-white/10 pb-8">
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-violet-200">// Repository</p>
-          <p className="mt-4 font-mono text-2xl text-zinc-500">Loading repository data...</p>
-        </div>
-      </div>
-    );
+    return <RepositoryLoadingSkeleton />;
   }
 
   if (error || !repository) {
@@ -290,7 +350,7 @@ function RepositoryDetailContent({ params }: { params: Promise<{ slug: string; r
               repositoryId={repository.id}
               commits={commits
                 .filter((commit) => selectedCommits.has(commit.sha))
-                .map((commit) => ({ sha: commit.sha, message: commit.message }))}
+                .map((commit) => ({ sha: commit.sha, message: commit.message, changeSummary: commit.changeSummary }))}
               saveAction={saveGeneratedChangelog}
               onSaved={handleGeneratedChangelogSaved}
             />

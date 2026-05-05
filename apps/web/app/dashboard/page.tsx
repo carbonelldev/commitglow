@@ -1,8 +1,9 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getActiveOrganization } from "@/lib/organizations";
+import { formatUsageResetDate, getPlanUsageSnapshot, type PlanLimitUsage } from "@/lib/plan-usage";
 import { AnchorButton, Card } from "@commitglow/ui";
-import { changelogs, commits, integrations, projects, repositories, usageEvents } from "@commitglow/db/schema";
+import { changelogs, commits, integrations, projects, repositories } from "@commitglow/db/schema";
 import { and, count, desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 
@@ -30,6 +31,27 @@ function MetricBar({ label, value, total }: { label: string; value: number; tota
   );
 }
 
+function UsageLimitRow({ label, usage, accent = "violet" }: { label: string; usage: PlanLimitUsage; accent?: "violet" | "emerald" }) {
+  const barWidth = usage.limit === null ? 100 : percent(usage.used, usage.limit);
+  const barClass = accent === "emerald" ? "bg-emerald-300/70 shadow-[0_0_18px_rgba(52,211,153,0.35)]" : "bg-violet-300/70 shadow-[0_0_18px_rgba(196,181,253,0.45)]";
+
+  return (
+    <div className="rounded-sm border border-white/10 bg-black/25 p-4">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-600">{label}</p>
+          <p className="mt-2 font-mono text-lg text-white">{usage.remainingLabel}</p>
+        </div>
+        <span className="shrink-0 rounded-sm border border-white/10 bg-black/30 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-400">{usage.label}</span>
+      </div>
+      <div className="mt-4 h-2 overflow-hidden rounded-sm border border-white/10 bg-black/50">
+        <div className={`h-full ${barClass}`} style={{ width: `${barWidth}%` }} />
+      </div>
+      {usage.reached ? <p className="mt-3 font-mono text-[11px] leading-5 text-zinc-600">{usage.hardLimit ? "Limit reached." : "Included allowance used; overage can continue."}</p> : null}
+    </div>
+  );
+}
+
 function isExplicitProviderConnection(metadata: unknown) {
   return Boolean(metadata && typeof metadata === "object" && (metadata as Record<string, unknown>).source === "explicit-provider-connect");
 }
@@ -42,6 +64,7 @@ export default async function DashboardPage() {
   }
 
   const { active: organization } = await getActiveOrganization(session.user);
+  const usage = await getPlanUsageSnapshot(session.user, organization);
   const [projectCount] = await db.select({ value: count() }).from(projects).where(eq(projects.organizationId, organization.id));
   const [repositoryCount] = await db
     .select({ value: count() })
@@ -65,7 +88,6 @@ export default async function DashboardPage() {
     .innerJoin(projects, eq(repositories.projectId, projects.id))
     .where(eq(projects.organizationId, organization.id));
   const workspaceProviders = await db.select({ metadata: integrations.metadata }).from(integrations).where(eq(integrations.organizationId, organization.id));
-  const [generationCount] = await db.select({ value: count() }).from(usageEvents).where(and(eq(usageEvents.organizationId, organization.id), eq(usageEvents.type, "generation")));
   const recentProjects = await db
     .select({ id: projects.id, name: projects.name, slug: projects.slug, createdAt: projects.createdAt })
     .from(projects)
@@ -118,9 +140,39 @@ export default async function DashboardPage() {
         </Card>
         <Card>
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Generations</p>
-          <p className="mt-4 font-mono text-3xl text-white sm:text-4xl">{generationCount?.value ?? 0}</p>
+          <p className="mt-4 font-mono text-3xl text-white sm:text-4xl">{usage.generations.used}</p>
         </Card>
       </div>
+
+      <Card className="mt-8 relative overflow-hidden p-0 hover:border-violet-300/30">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-200/70 to-transparent" />
+        <div className="border-b border-white/10 p-5 sm:p-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="font-mono text-xs uppercase tracking-[0.18em] text-violet-200">// Plan Usage</p>
+              <h2 className="mt-2 font-mono text-2xl text-white">{usage.planLabel} limits</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-500">Monthly generations reset on {formatUsageResetDate(usage.resetAt)}. Workspace, project, and provider limits update immediately as you create or connect resources.</p>
+            </div>
+            <AnchorButton href="/dashboard/account" variant="secondary">Account Usage</AnchorButton>
+          </div>
+        </div>
+        <div className="grid gap-4 p-5 sm:p-6 lg:grid-cols-2">
+          <UsageLimitRow label="Generations" usage={usage.generations} accent={usage.generations.overagePriceUsd === null ? "violet" : "emerald"} />
+          <UsageLimitRow label="Workspaces" usage={usage.workspaces} />
+          <UsageLimitRow label="Projects in this workspace" usage={usage.projects} />
+          <UsageLimitRow label="Provider accounts" usage={usage.providerAccounts} />
+        </div>
+        <div className="grid gap-3 border-t border-white/10 bg-black/20 p-5 sm:grid-cols-2 sm:p-6">
+          <div className="rounded-sm border border-white/10 bg-white/[0.02] p-4">
+            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-600">Repositories</p>
+            <p className="mt-2 font-mono text-xl text-white">{usage.repositories.label}</p>
+          </div>
+          <div className="rounded-sm border border-white/10 bg-white/[0.02] p-4">
+            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-600">Changelogs</p>
+            <p className="mt-2 font-mono text-xl text-white">{usage.changelogs.label}</p>
+          </div>
+        </div>
+      </Card>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.75fr)]">
         <Card>

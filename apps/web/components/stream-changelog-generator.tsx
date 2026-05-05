@@ -3,6 +3,8 @@
 import { Streamdown } from "streamdown";
 import { code } from "@streamdown/code";
 import { type ManualChangelogFormState } from "@/app/dashboard/projects/[slug]/changelogs/actions";
+import { ChangelogShareActions } from "@/components/changelog-share-actions";
+import type { ChangelogGenerationOptions } from "@/lib/ai";
 import { Button } from "@commitglow/ui";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
@@ -11,7 +13,7 @@ type StreamChangelogGeneratorProps = {
   projectId: string;
   projectSlug: string;
   repositoryId: string;
-  commits: Array<{ sha: string; message: string }>;
+  commits: Array<{ sha: string; message: string; changeSummary?: string | null }>;
   saveAction: (_: ManualChangelogFormState, formData: FormData) => Promise<ManualChangelogFormState>;
   onSaved?: () => void | Promise<void>;
 };
@@ -89,6 +91,12 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
   const [error, setError] = useState("");
   const [title, setTitle] = useState("");
   const [version, setVersion] = useState("");
+  const [audience, setAudience] = useState<NonNullable<ChangelogGenerationOptions["audience"]>>("users");
+  const [detail, setDetail] = useState<NonNullable<ChangelogGenerationOptions["detail"]>>("balanced");
+  const [tone, setTone] = useState<NonNullable<ChangelogGenerationOptions["tone"]>>("professional");
+  const [technicalDetails, setTechnicalDetails] = useState<NonNullable<ChangelogGenerationOptions["technicalDetails"]>>("balanced");
+  const [instructions, setInstructions] = useState("");
+  const [currentUrl, setCurrentUrl] = useState("");
   const sessionScrollRef = useRef<HTMLDivElement>(null);
 
   function startGeneration() {
@@ -108,7 +116,16 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
     fetch("/api/changelog/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ commits })
+      body: JSON.stringify({
+        commits,
+        options: {
+          audience,
+          detail,
+          tone,
+          technicalDetails,
+          instructions
+        } satisfies ChangelogGenerationOptions
+      })
     })
       .then((response) => {
         if (!response.ok) {
@@ -177,6 +194,10 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
   }
 
   useEffect(() => {
+    setCurrentUrl(window.location.href);
+  }, []);
+
+  useEffect(() => {
     if (state.status === "success") {
       onSaved?.();
       setStatus("idle");
@@ -215,8 +236,49 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
         <p className="font-mono text-sm leading-7 text-zinc-500">
           AI-powered generation reads your {commits.length} selected commit{commits.length === 1 ? "" : "s"} and opens a live generation session with streamed reasoning and markdown output.
         </p>
+        <div className="rounded-sm border border-white/10 bg-black/20 p-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <label className="block">
+              <span className="mb-2 block font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-600">Audience</span>
+              <select value={audience} onChange={(event) => setAudience(event.target.value as NonNullable<ChangelogGenerationOptions["audience"]>)} disabled={status === "generating"} className="w-full rounded-sm border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs text-zinc-200 outline-none transition focus:border-violet-300/70 focus:ring-2 focus:ring-violet-300/20">
+                <option value="users">Users</option>
+                <option value="developers">Developers</option>
+                <option value="stakeholders">Stakeholders</option>
+              </select>
+            </label>
+            <label className="block">
+              <span className="mb-2 block font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-600">Detail</span>
+              <select value={detail} onChange={(event) => setDetail(event.target.value as NonNullable<ChangelogGenerationOptions["detail"]>)} disabled={status === "generating"} className="w-full rounded-sm border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs text-zinc-200 outline-none transition focus:border-violet-300/70 focus:ring-2 focus:ring-violet-300/20">
+                <option value="concise">Concise</option>
+                <option value="balanced">Balanced</option>
+                <option value="detailed">Detailed</option>
+              </select>
+            </label>
+            <label className="block">
+              <span className="mb-2 block font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-600">Tone</span>
+              <select value={tone} onChange={(event) => setTone(event.target.value as NonNullable<ChangelogGenerationOptions["tone"]>)} disabled={status === "generating"} className="w-full rounded-sm border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs text-zinc-200 outline-none transition focus:border-violet-300/70 focus:ring-2 focus:ring-violet-300/20">
+                <option value="professional">Professional</option>
+                <option value="friendly">Friendly</option>
+                <option value="technical">Technical</option>
+              </select>
+            </label>
+            <label className="block">
+              <span className="mb-2 block font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-600">Technical</span>
+              <select value={technicalDetails} onChange={(event) => setTechnicalDetails(event.target.value as NonNullable<ChangelogGenerationOptions["technicalDetails"]>)} disabled={status === "generating"} className="w-full rounded-sm border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs text-zinc-200 outline-none transition focus:border-violet-300/70 focus:ring-2 focus:ring-violet-300/20">
+                <option value="minimal">Minimal</option>
+                <option value="balanced">Balanced</option>
+                <option value="include">Include</option>
+              </select>
+            </label>
+          </div>
+          <label className="mt-3 block">
+            <span className="mb-2 block font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-600">Optional guidance</span>
+            <textarea value={instructions} onChange={(event) => setInstructions(event.target.value.slice(0, 1200))} disabled={status === "generating"} rows={3} placeholder="Example: focus on customer-facing fixes, keep internal refactors out, mention API changes for developers." className="w-full resize-y rounded-sm border border-white/10 bg-black/40 px-3 py-2 font-mono text-xs leading-5 text-zinc-200 outline-none transition placeholder:text-zinc-700 focus:border-violet-300/70 focus:ring-2 focus:ring-violet-300/20" />
+          </label>
+          <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-700">Each generate or regenerate action starts a new AI generation.</p>
+        </div>
         <Button type="button" variant="primary" onClick={startGeneration} disabled={commits.length === 0 || status === "generating"} className="w-full">
-          {status === "generating" ? "Generating..." : "Generate with AI"}
+          {status === "generating" ? "Generating..." : status === "done" ? "Regenerate with AI" : "Generate with AI"}
         </Button>
       </div>
 
@@ -253,7 +315,8 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
               <div className="space-y-4">
                 <div className="ai-message-enter max-w-3xl rounded-sm border border-white/10 bg-white/[0.02] p-4">
                   <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-zinc-600">Input Context</p>
-                  <p className="mt-2 font-mono text-sm leading-6 text-zinc-300">Generate a product changelog from {commits.length} selected commit{commits.length === 1 ? "" : "s"}. Keep it scoped to release notes only.</p>
+                  <p className="mt-2 font-mono text-sm leading-6 text-zinc-300">Generate a {detail} changelog for {audience} from {commits.length} selected commit{commits.length === 1 ? "" : "s"}. Tone: {tone}. Technical detail: {technicalDetails}.</p>
+                  {instructions.trim() ? <p className="mt-2 font-mono text-xs leading-5 text-zinc-500">Guidance: {instructions.trim()}</p> : null}
                   <div className="mt-3 flex flex-wrap gap-2">
                     {commits.slice(0, 8).map((commit) => (
                       <span key={commit.sha} className="rounded-sm border border-white/10 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-600">{commit.sha.slice(0, 7)}</span>
@@ -308,12 +371,29 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
                   {status === "error" ? (
                     <div className="mt-4 rounded-sm border border-violet-300/30 bg-violet-500/10 p-4 font-mono text-sm text-violet-100">
                       ! {error}
+                      {error.toLowerCase().includes("generation limit") ? <a href="/pricing" className="mt-3 block text-xs uppercase tracking-[0.14em] text-white underline decoration-violet-200/50 underline-offset-4">View upgrade options</a> : null}
                       <Button type="button" variant="ghost" onClick={startGeneration} className="mt-3">Retry</Button>
                     </div>
                   ) : null}
 
                   {status === "done" && !output.trim() ? (
                     <div className="mt-4 rounded-sm border border-violet-300/30 bg-violet-500/10 p-4 font-mono text-sm leading-6 text-violet-100">! The model streamed reasoning but did not produce final changelog text. Retry generation or select fewer commits.</div>
+                  ) : null}
+
+                  {status === "done" ? (
+                    <Button type="button" variant="ghost" onClick={startGeneration} className="mt-4">Regenerate with current settings</Button>
+                  ) : null}
+
+                  {status === "done" && output.trim() ? (
+                    <ChangelogShareActions
+                      title={title}
+                      version={version}
+                      body={output}
+                      source={`${commits.length} selected commit${commits.length === 1 ? "" : "s"}`}
+                      url={currentUrl}
+                      className="mt-4"
+                      compact
+                    />
                   ) : null}
                 </div>
               </div>

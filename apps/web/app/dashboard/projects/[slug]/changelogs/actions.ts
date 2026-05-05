@@ -2,6 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import {
+  type ChangelogGenerationOptions,
   changelogModel,
   changelogSystemPrompt,
   aiConfigured,
@@ -9,6 +10,8 @@ import {
 } from "@/lib/ai";
 import { db } from "@/lib/db";
 import { getActiveOrganization } from "@/lib/organizations";
+import { formatUsageResetDate, getPlanUsageSnapshot } from "@/lib/plan-usage";
+import { trackMeteredUsage } from "@/lib/metered-usage";
 import {
   changelogs,
   commits,
@@ -36,6 +39,7 @@ export type GenerateChangelogPreviewState = {
 export type CommitSelectionEntry = {
   sha: string;
   message: string;
+  changeSummary: string | null;
   authorName: string | null;
   committedAt: string | null;
   url: string | null;
@@ -129,6 +133,16 @@ function renderChangelogBody(
   }
 
   return rendered.join("\n\n");
+}
+
+function getCommitChangeSummary(metadata: unknown) {
+  if (!metadata || typeof metadata !== "object") {
+    return null;
+  }
+
+  const value = (metadata as Record<string, unknown>).changeSummary;
+
+  return typeof value === "string" && value.trim() ? value.trim().slice(0, 2000) : null;
 }
 
 function formatNow() {
@@ -314,6 +328,7 @@ export async function getRepositoryCommits(
     commits: syncedCommits.map((commit) => ({
       sha: commit.sha,
       message: commit.message,
+      changeSummary: getCommitChangeSummary(commit.metadata),
       authorName: commit.authorName,
       committedAt:
         commit.committedAt instanceof Date
@@ -330,6 +345,7 @@ export async function generateChangelogPreview(
   repositoryId: string,
   version?: string,
   selectedShas?: string[],
+  options?: ChangelogGenerationOptions,
 ): Promise<GenerateChangelogPreviewState> {
   const session = await auth.api.getSession({ headers: await headers() });
 
@@ -345,6 +361,19 @@ export async function generateChangelogPreview(
   }
 
   const { active: organization } = await getActiveOrganization(session.user);
+  const usage = await getPlanUsageSnapshot(session.user, organization);
+
+  if (!usage.generations.canGenerate) {
+    return {
+      status: "error",
+      message: `Monthly generation limit reached. Your ${usage.planLabel} plan resets on ${formatUsageResetDate(usage.resetAt)}.`,
+      title: "",
+      version: "",
+      body: "",
+      commitCount: 0,
+    };
+  }
+
   const [project] = await db
     .select({ id: projects.id, name: projects.name, slug: projects.slug })
     .from(projects)
@@ -395,7 +424,7 @@ export async function generateChangelogPreview(
   }
 
   const query = db
-    .select({ sha: commits.sha, message: commits.message, url: commits.url })
+    .select({ sha: commits.sha, message: commits.message, url: commits.url, metadata: commits.metadata })
     .from(commits)
     .where(eq(commits.repositoryId, repository.id))
     .orderBy(desc(commits.committedAt));
@@ -423,6 +452,7 @@ export async function generateChangelogPreview(
   const resolvedVersion = version || `v0.1.0+${formatNow().replace(/-/g, "")}`;
   const title = `${repository.owner}/${repository.name} update ${formatNow()} -- ${project.name}`;
   let body = "";
+  let generatedWithAi = false;
 
   if (aiConfigured() && recentCommits.length > 0) {
     try {
@@ -431,10 +461,11 @@ export async function generateChangelogPreview(
       const result = await generateText({
         model: changelogModel,
         system: changelogSystemPrompt,
-        prompt: changelogUserPrompt(recentCommits),
+        prompt: changelogUserPrompt(recentCommits.map((commit) => ({ ...commit, changeSummary: getCommitChangeSummary(commit.metadata) })), options),
       });
 
       body = result.text.trim();
+      generatedWithAi = true;
     } catch {
       body = renderChangelogBody(recentCommits);
     }
@@ -442,9 +473,26 @@ export async function generateChangelogPreview(
     body = renderChangelogBody(recentCommits);
   }
 
+  if (generatedWithAi) {
+    try {
+      await trackMeteredUsage({
+        userId: session.user.id,
+        organizationId: organization.id,
+        type: "generation",
+        metadata: {
+          commit_count: recentCommits.length,
+          output_length: body.length,
+          generation_path: "server_action_preview",
+        },
+      });
+    } catch (error) {
+      console.error("Failed to track changelog generation usage", error);
+    }
+  }
+
   return {
     status: "success",
-    message: aiConfigured()
+    message: generatedWithAi
       ? `AI generated from ${recentCommits.length} commit${recentCommits.length === 1 ? "" : "s"}. ${selectedShas ? "Using your commit selection." : ""}`
       : `${recentCommits.length} commits grouped across ${body.split("## ").length - 1} sections. Connect AI Gateway for better results.`,
     title,
