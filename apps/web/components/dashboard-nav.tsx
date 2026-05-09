@@ -4,6 +4,7 @@ import { SignOutButton } from "@/components/sign-out-button";
 import { switchWorkspace } from "@/app/dashboard/workspaces/actions";
 import { WorkspaceCreateForm } from "@/components/workspace-create-form";
 import { plans, toPlanSlug } from "@/lib/plans";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -76,7 +77,7 @@ function linkClass(active: boolean) {
 }
 
 function Icon({ name }: { name: string }) {
-  const className = "h-4 w-4 shrink-0 text-zinc-600 group-hover:text-violet-200";
+  const className = "size-4 shrink-0 text-zinc-600 group-hover:text-violet-200";
 
   if (name === "folder") {
     return (
@@ -184,10 +185,10 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
 
   return (
     <aside className="relative z-20 border-b border-white/10 bg-[#050507]/95 shadow-[20px_0_80px_rgba(0,0,0,0.32)] lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-72 lg:shrink-0 lg:flex-col lg:border-b-0 lg:border-r">
-      <div className="relative border-b border-white/10 px-4 py-4">
+      <div className="relative border-b border-white/10 p-4">
         <details className="group/top relative lg:block">
-          <summary className="flex cursor-pointer list-none items-center gap-3 rounded-sm border border-transparent px-2 py-2 transition hover:border-violet-300/25 hover:bg-white/[0.035] group-open/top:border-violet-300/30 group-open/top:bg-violet-500/[0.06] [&::-webkit-details-marker]:hidden">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-violet-300/40 bg-violet-500/10 font-mono text-xs text-violet-100">
+          <summary className="flex cursor-pointer list-none items-center gap-3 rounded-sm border border-transparent p-2 transition hover:border-violet-300/25 hover:bg-white/[0.035] group-open/top:border-violet-300/30 group-open/top:bg-violet-500/[0.06] [&::-webkit-details-marker]:hidden">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-sm border border-violet-300/40 bg-violet-500/10 font-mono text-xs text-violet-100">
               {initials(organization.name)}
             </span>
             <span className="min-w-0 flex-1 truncate font-mono text-sm text-white">{organization.name}</span>
@@ -204,7 +205,7 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
                 <form key={item.id} action={switchWorkspace}>
                   <input type="hidden" name="organizationId" value={item.id} />
                   <button className={[dropdownItemClass, active ? "bg-violet-500/[0.08] before:bg-violet-200/80" : ""].join(" ")} type="submit">
-                    <span className={["flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border font-mono text-xs", active ? "border-violet-200/55 bg-violet-500/15 text-white shadow-[0_0_24px_rgba(139,92,246,0.18)]" : "border-violet-300/30 bg-violet-500/10 text-violet-100"].join(" ")}>
+                    <span className={["flex size-8 shrink-0 items-center justify-center rounded-sm border font-mono text-xs", active ? "border-violet-200/55 bg-violet-500/15 text-white shadow-[0_0_24px_rgba(139,92,246,0.18)]" : "border-violet-300/30 bg-violet-500/10 text-violet-100"].join(" ")}>
                       {initials(item.name)}
                     </span>
                     <span className="min-w-0 flex-1">
@@ -212,7 +213,7 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
                       <span className="block truncate font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-600">{item.role}</span>
                     </span>
                     {active ? (
-                      <svg aria-hidden="true" className="h-4 w-4 text-violet-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                      <svg aria-hidden="true" className="size-4 text-violet-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                         <path d="m5 12 4 4 10-10" />
                       </svg>
                     ) : null}
@@ -225,7 +226,7 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
               type="button"
               disabled={workspaceLimit.reached}
               onClick={() => setCreateWorkspaceOpen(true)}
-              className="group relative flex w-full items-center gap-3 border-t border-white/10 bg-white/[0.018] px-4 py-3 text-left font-mono text-xs uppercase tracking-[0.14em] text-zinc-400 transition hover:bg-violet-500/[0.07] hover:text-white disabled:cursor-not-allowed disabled:text-zinc-700 disabled:hover:bg-transparent"
+              className="group relative flex w-full items-center gap-3 border-t border-white/10 bg-white/[0.018] px-4 py-3 text-left font-mono text-xs uppercase tracking-[0.14em] text-violet-100 transition hover:bg-violet-500/[0.07] hover:text-white disabled:cursor-not-allowed disabled:text-violet-950 disabled:hover:bg-transparent"
               title={workspaceLimit.reached ? `Workspace limit reached: ${workspaceLimit.count}/${workspaceLimit.label}` : "Create workspace"}
             >
               <Icon name="plus" />
@@ -253,7 +254,7 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
         </div>
       ) : null}
 
-      <div className="scrollbar-soft flex gap-2 overflow-x-auto px-4 py-4 lg:block lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:py-6">
+      <div className="scrollbar-soft flex gap-2 overflow-x-auto p-4 lg:block lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:py-6">
         {activeProject && showProjectSidebar ? (
           <div className="project-sidebar-enter flex gap-2 lg:block">
             <button type="button" onClick={() => setShowProjectSidebar(false)} className="group flex min-w-[10rem] items-center gap-3 rounded-sm border border-white/10 px-3 py-2.5 text-left font-mono text-xs uppercase tracking-[0.14em] text-zinc-400 transition hover:border-violet-300/40 hover:bg-white/[0.03] hover:text-white lg:min-w-0">
@@ -268,22 +269,22 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
             </div>
 
             <nav className="flex gap-1 lg:mt-5 lg:block lg:space-y-1 lg:mb-3" aria-label="Project navigation">
-              <a href={`/dashboard/projects/${activeProject.slug}`} className={linkClass(pathname === `/dashboard/projects/${activeProject.slug}`)}>
+              <Link href={`/dashboard/projects/${activeProject.slug}`} className={linkClass(pathname === `/dashboard/projects/${activeProject.slug}`)}>
                 <Icon name="chart" />
                 <span className="truncate font-medium">Overview</span>
-              </a>
-              <a href={`/dashboard/projects/${activeProject.slug}/repositories`} className={linkClass(pathname === `/dashboard/projects/${activeProject.slug}/repositories`)}>
+              </Link>
+              <Link href={`/dashboard/projects/${activeProject.slug}/repositories`} className={linkClass(pathname === `/dashboard/projects/${activeProject.slug}/repositories`)}>
                 <Icon name="repo" />
                 <span className="truncate font-medium">Repositories</span>
-              </a>
-              <a href={`/dashboard/projects/${activeProject.slug}/changelogs`} className={linkClass(pathname === `/dashboard/projects/${activeProject.slug}/changelogs`)}>
+              </Link>
+              <Link href={`/dashboard/projects/${activeProject.slug}/changelogs`} className={linkClass(pathname === `/dashboard/projects/${activeProject.slug}/changelogs`)}>
                 <Icon name="folder" />
                 <span className="truncate font-medium">Changelogs</span>
-              </a>
-              <a href={`/dashboard/projects/${activeProject.slug}/settings`} className={linkClass(pathname === `/dashboard/projects/${activeProject.slug}/settings`)}>
+              </Link>
+              <Link href={`/dashboard/projects/${activeProject.slug}/settings`} className={linkClass(pathname === `/dashboard/projects/${activeProject.slug}/settings`)}>
                 <Icon name="sliders" />
                 <span className="truncate font-medium">Settings</span>
-              </a>
+              </Link>
             </nav>
 
             <div className="hidden lg:block">
@@ -296,10 +297,10 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
               ) : (
                 <div className="space-y-1">
                   {activeProject.repositories.map((repository) => (
-                    <a key={repository.id} href={`/dashboard/projects/${activeProject.slug}/repositories/${repository.id}`} className="group flex items-center gap-2 rounded-sm px-2 py-2 font-mono text-[11px] uppercase tracking-[0.12em] text-zinc-600 transition hover:bg-white/[0.03] hover:text-white" title={`${repository.owner}/${repository.name}`}>
+                    <Link key={repository.id} href={`/dashboard/projects/${activeProject.slug}/repositories/${repository.id}`} className="group flex items-center gap-2 rounded-sm p-2 font-mono text-[11px] uppercase tracking-[0.12em] text-zinc-600 transition hover:bg-white/[0.03] hover:text-white" title={`${repository.owner}/${repository.name}`}>
                       <Icon name="repo" />
                       <span className="truncate">{repository.owner}/{repository.name}</span>
-                    </a>
+                    </Link>
                   ))}
                 </div>
               )}
@@ -318,10 +319,10 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
                 const active = link.href === "/dashboard" ? pathname === link.href : pathname.startsWith(link.href);
 
                 return (
-                  <a key={link.href} href={link.href} className={linkClass(active)} aria-current={active ? "page" : undefined}>
+                  <Link key={link.href} href={link.href} className={linkClass(active)} aria-current={active ? "page" : undefined}>
                     <Icon name={link.icon} />
                     <span className="truncate font-medium">{link.label}</span>
-                  </a>
+                  </Link>
                 );
               })}
             </nav>
@@ -338,21 +339,21 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
                 <div className="max-h-80 space-y-1 overflow-y-auto pr-1 scrollbar-soft">
                   {projects.map((project) => (
                     <div key={project.id}>
-                      <a
+                      <Link
                         href={`/dashboard/projects/${project.slug}`}
                         className="group flex items-center gap-3 rounded-sm border border-transparent px-3 py-2.5 font-mono text-xs uppercase tracking-[0.14em] text-zinc-500 transition hover:border-white/10 hover:bg-white/[0.03] hover:text-white"
                         title={project.name}
                       >
                         <Icon name="folder" />
                         <span className="truncate font-medium">{project.name}</span>
-                      </a>
+                      </Link>
                       {project.repositories.length > 0 ? (
                         <div className="ml-5 border-l border-white/10 pl-3">
                           {project.repositories.map((repository) => (
-                            <a key={repository.id} href={`/dashboard/projects/${project.slug}/repositories/${repository.id}`} className="group flex items-center gap-2 rounded-sm px-2 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-zinc-600 transition hover:bg-white/[0.03] hover:text-white" title={`${repository.owner}/${repository.name}`}>
+                            <Link key={repository.id} href={`/dashboard/projects/${project.slug}/repositories/${repository.id}`} className="group flex items-center gap-2 rounded-sm px-2 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-zinc-600 transition hover:bg-white/[0.03] hover:text-white" title={`${repository.owner}/${repository.name}`}>
                               <Icon name="repo" />
                               <span className="truncate">{repository.owner}/{repository.name}</span>
-                            </a>
+                            </Link>
                           ))}
                         </div>
                       ) : null}
@@ -370,21 +371,21 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
           <span>More</span>
           <span className="text-zinc-600 transition group-open/mobile:rotate-180">v</span>
         </summary>
-        <div className="max-h-[60vh] overflow-y-auto border-t border-white/10 px-4 py-4 scrollbar-soft">
-          <a
+        <div className="max-h-[60vh] overflow-y-auto border-t border-white/10 p-4 scrollbar-soft">
+          <Link
             href="/pricing"
-            className="group mb-3 flex items-center justify-between gap-3 rounded-sm border border-violet-300/20 bg-violet-500/[0.06] px-3 py-3 transition hover:border-violet-200/50 hover:bg-violet-500/10"
+            className="group mb-3 flex items-center justify-between gap-3 rounded-sm border border-violet-300/20 bg-violet-500/[0.06] p-3 transition hover:border-violet-200/50 hover:bg-violet-500/10"
           >
             <div className="min-w-0">
               <p className="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-violet-100">{isFreePlan ? "Upgrade" : "Account Plan"}</p>
               <p className="truncate text-xs text-zinc-500">{isFreePlan ? "More workspaces" : plans[accountPlan].label}</p>
             </div>
             <span className="shrink-0 rounded-sm border border-white/10 bg-black/20 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-zinc-400">{accountPlan}</span>
-          </a>
+          </Link>
 
           <div className="grid gap-2 border-b border-white/10 pb-4">
-            <a href="/dashboard/account" className="rounded-sm border border-white/10 px-3 py-3 font-mono text-xs uppercase tracking-[0.14em] text-zinc-400 transition hover:border-violet-300/40 hover:bg-white/[0.03] hover:text-white">Account settings</a>
-            <a href="/" className="rounded-sm border border-white/10 px-3 py-3 font-mono text-xs uppercase tracking-[0.14em] text-zinc-400 transition hover:border-violet-300/40 hover:bg-white/[0.03] hover:text-white">Homepage</a>
+            <Link href="/dashboard/account" className="rounded-sm border border-white/10 p-3 font-mono text-xs uppercase tracking-[0.14em] text-zinc-400 transition hover:border-violet-300/40 hover:bg-white/[0.03] hover:text-white">Account settings</Link>
+            <Link href="/" className="rounded-sm border border-white/10 p-3 font-mono text-xs uppercase tracking-[0.14em] text-zinc-400 transition hover:border-violet-300/40 hover:bg-white/[0.03] hover:text-white">Homepage</Link>
           </div>
 
           {activeProject && activeProject.repositories.length > 0 ? (
@@ -392,10 +393,10 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
               {sectionTitle("Project Repos", activeProject.repositories.length)}
               <div className="grid gap-1">
                 {activeProject.repositories.map((repository) => (
-                  <a key={repository.id} href={`/dashboard/projects/${activeProject.slug}/repositories/${repository.id}`} className="group flex min-h-11 items-center gap-2 rounded-sm px-2 py-2 font-mono text-[11px] uppercase tracking-[0.12em] text-zinc-500 transition hover:bg-white/[0.03] hover:text-white" title={`${repository.owner}/${repository.name}`}>
+                  <Link key={repository.id} href={`/dashboard/projects/${activeProject.slug}/repositories/${repository.id}`} className="group flex min-h-11 items-center gap-2 rounded-sm p-2 font-mono text-[11px] uppercase tracking-[0.12em] text-zinc-500 transition hover:bg-white/[0.03] hover:text-white" title={`${repository.owner}/${repository.name}`}>
                     <Icon name="repo" />
                     <span className="truncate">{repository.owner}/{repository.name}</span>
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -411,7 +412,7 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
             ) : (
               <div className="grid gap-1">
                 {projects.map((project) => (
-                  <a
+                  <Link
                     key={project.id}
                     href={`/dashboard/projects/${project.slug}`}
                     className="group flex min-h-11 items-center gap-3 rounded-sm border border-transparent px-3 py-2.5 font-mono text-xs uppercase tracking-[0.14em] text-zinc-500 transition hover:border-white/10 hover:bg-white/[0.03] hover:text-white"
@@ -419,7 +420,7 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
                   >
                     <Icon name="folder" />
                     <span className="truncate font-medium">{project.name}</span>
-                  </a>
+                  </Link>
                 ))}
               </div>
             )}
@@ -429,7 +430,7 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
 
       <div className="border-t border-white/10 p-4">
         <div className="hidden lg:block">
-          <a
+          <Link
             href="/pricing"
             className="group mb-3 flex items-center justify-between gap-3 rounded-sm border border-violet-300/20 bg-violet-500/[0.06] px-2.5 py-2 transition hover:border-violet-200/50 hover:bg-violet-500/10"
           >
@@ -438,8 +439,8 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
               <p className="truncate text-[11px] text-zinc-500">{isFreePlan ? "More workspaces" : plans[accountPlan].label}</p>
             </div>
             <span className="shrink-0 rounded-sm border border-white/10 bg-black/20 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-zinc-400">{accountPlan}</span>
-          </a>
-          <a href="/dashboard/account" className="mb-3 block rounded-sm border border-white/10 bg-black/25 p-3 transition hover:border-violet-300/35 hover:bg-white/[0.03]">
+          </Link>
+          <Link href="/dashboard/account" className="mb-3 block rounded-sm border border-white/10 bg-black/25 p-3 transition hover:border-violet-300/35 hover:bg-white/[0.03]">
             <div className="flex items-center justify-between gap-3">
               <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-600">Usage</p>
               <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-zinc-600">{usageSummary.generationsUsed}</span>
@@ -449,17 +450,17 @@ export function DashboardNav({ identity, organization, organizations, workspaceL
               <span className="truncate">{usageSummary.projects}</span>
               <span className="truncate">{usageSummary.providers}</span>
             </div>
-          </a>
+          </Link>
           <details className="group/profile relative">
-            <summary className="flex cursor-pointer list-none items-center gap-3 rounded-sm border border-white/10 bg-black/30 px-2 py-2 transition hover:border-violet-300/50 hover:bg-white/[0.03] group-open/profile:border-violet-300/40 group-open/profile:bg-violet-500/[0.06] [&::-webkit-details-marker]:hidden">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-white/10 bg-white/[0.03] font-mono text-xs text-violet-200">{initials(identity.name)}</span>
+            <summary className="flex cursor-pointer list-none items-center gap-3 rounded-sm border border-white/10 bg-black/30 p-2 transition hover:border-violet-300/50 hover:bg-white/[0.03] group-open/profile:border-violet-300/40 group-open/profile:bg-violet-500/[0.06] [&::-webkit-details-marker]:hidden">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-sm border border-white/10 bg-white/[0.03] font-mono text-xs text-violet-200">{initials(identity.name)}</span>
               <span className="min-w-0 flex-1 truncate font-mono text-xs text-zinc-300">{identity.email}</span>
-              <span className="font-mono text-xs text-zinc-600 transition group-open/profile:text-violet-100">...</span>
+              <span className="font-mono text-xs text-zinc-600 transition group-open/profile:text-violet-100">…</span>
             </summary>
             <div className={`${dropdownPanelClass} bottom-full left-0 right-0 mb-2`}>
               <div className="h-px bg-gradient-to-r from-transparent via-violet-200/80 to-transparent" />
-              <a href="/dashboard/account" className="relative block px-4 py-3 font-mono text-xs uppercase tracking-[0.14em] text-zinc-400 transition before:pointer-events-none before:absolute before:inset-y-1 before:left-0 before:w-px before:bg-transparent hover:bg-white/[0.045] hover:text-white hover:before:bg-violet-200/70">Account settings</a>
-              <a href="/" className="relative block border-t border-white/10 px-4 py-3 font-mono text-xs uppercase tracking-[0.14em] text-zinc-400 transition before:pointer-events-none before:absolute before:inset-y-1 before:left-0 before:w-px before:bg-transparent hover:bg-white/[0.045] hover:text-white hover:before:bg-violet-200/70">Homepage</a>
+              <Link href="/dashboard/account" className="relative block px-4 py-3 font-mono text-xs uppercase tracking-[0.14em] text-violet-100 transition before:pointer-events-none before:absolute before:inset-y-1 before:left-0 before:w-px before:bg-transparent hover:bg-white/[0.045] hover:text-white hover:before:bg-violet-200/70">Account settings</Link>
+              <Link href="/" className="relative block border-t border-white/10 px-4 py-3 font-mono text-xs uppercase tracking-[0.14em] text-violet-100 transition before:pointer-events-none before:absolute before:inset-y-1 before:left-0 before:w-px before:bg-transparent hover:bg-white/[0.045] hover:text-white hover:before:bg-violet-200/70">Homepage</Link>
               <div className="border-t border-white/10 p-2">
                 <SignOutButton />
               </div>

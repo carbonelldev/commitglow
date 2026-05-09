@@ -42,8 +42,8 @@ export function PolarCheckoutButton({ slug, referenceId, configured, highlighted
   return (
     <div className="mt-8">
       <Button type="button" variant={highlighted ? "primary" : "secondary"} className="group w-full" disabled={pending} onClick={startCheckout}>
-        <span>{pending ? "Opening checkout..." : children}</span>
-        <svg aria-hidden="true" className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 16 16">
+        <span>{pending ? "Opening checkout…" : children}</span>
+        <svg aria-hidden="true" className="size-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 16 16">
           <path d="M3 8h10m0 0L9 4m4 4-4 4" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
         </svg>
       </Button>

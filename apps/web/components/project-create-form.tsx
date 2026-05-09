@@ -15,7 +15,7 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
 
   return (
     <Button type="submit" variant="primary" disabled={pending || disabled} className="w-full">
-      {pending ? "Creating..." : "New Project"}
+      {pending ? "Creating…" : "New Project"}
     </Button>
   );
 }
@@ -32,13 +32,13 @@ export function ProjectCreateForm({ disabled = false }: { disabled?: boolean }) 
 
   return (
     <form ref={formRef} action={formAction} className="mt-6 space-y-4">
-      <label className="block">
+      <label htmlFor="project-name" className="block">
         <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Project name</span>
-        <Input name="name" placeholder="CommitGlow" minLength={2} maxLength={80} required disabled={disabled} />
+        <Input id="project-name" name="name" placeholder="CommitGlow" minLength={2} maxLength={80} required disabled={disabled} />
       </label>
-      <label className="block">
+      <label htmlFor="project-description" className="block">
         <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Description</span>
-        <Input name="description" placeholder="Optional product or workspace note" maxLength={160} disabled={disabled} />
+        <Input id="project-description" name="description" placeholder="Optional product or workspace note" maxLength={160} disabled={disabled} />
       </label>
       <SubmitButton disabled={disabled} />
       <div aria-live="polite" className="min-h-6">

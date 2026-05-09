@@ -33,7 +33,7 @@ export function BillingPortalButton({ configured }: { configured: boolean }) {
   return (
     <div className="mt-4">
       <Button type="button" variant="secondary" className="w-full" disabled={pending} onClick={openPortal}>
-        {pending ? "Opening billing..." : "Manage Billing"}
+        {pending ? "Opening billing…" : "Manage Billing"}
       </Button>
       {error ? <p className="mt-3 rounded-sm border border-violet-300/30 bg-violet-500/10 px-3 py-2 font-mono text-xs text-violet-100">{error}</p> : null}
     </div>

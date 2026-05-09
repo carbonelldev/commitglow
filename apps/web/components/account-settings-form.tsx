@@ -25,7 +25,7 @@ function SaveButton() {
 
   return (
     <Button type="submit" variant="primary" disabled={pending} className="w-full sm:w-auto">
-      {pending ? "Saving..." : "Save Settings"}
+      {pending ? "Saving…" : "Save Settings"}
     </Button>
   );
 }
@@ -36,14 +36,14 @@ export function AccountSettingsForm({ name, email }: AccountSettingsFormProps) {
   return (
     <form action={formAction} className="space-y-5">
       <div className="grid gap-5 md:grid-cols-2">
-        <label className="block">
+        <label htmlFor="account-name" className="block">
           <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Display name</span>
-          <Input name="name" defaultValue={name} minLength={2} maxLength={80} autoComplete="name" required />
+          <Input id="account-name" name="name" defaultValue={name} minLength={2} maxLength={80} autoComplete="name" required />
         </label>
 
-        <label className="block">
+        <label htmlFor="account-email" className="block">
           <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Email</span>
-          <Input value={email} type="email" disabled readOnly />
+          <Input id="account-email" value={email} type="email" disabled readOnly />
         </label>
       </div>
 
@@ -70,9 +70,9 @@ export function WorkspaceSettingsForm({ workspaceName, organizationId }: Workspa
   return (
     <form action={formAction} className="space-y-5">
       <input type="hidden" name="organizationId" value={organizationId} />
-      <label className="block">
+      <label htmlFor="workspace-name" className="block">
         <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Workspace name</span>
-        <Input name="workspaceName" defaultValue={workspaceName} minLength={2} maxLength={80} required />
+        <Input id="workspace-name" name="workspaceName" defaultValue={workspaceName} minLength={2} maxLength={80} required />
       </label>
       <div className="flex flex-col gap-3 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
         <p className="max-w-xl text-sm leading-6 text-zinc-500">This changes the active workspace label shown in the switcher and sidebar.</p>

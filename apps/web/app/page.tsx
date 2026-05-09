@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { HomepageGreeting, HomepageCtaButtons } from "@/components/auth-aware-cta";
 import { seo } from "@/lib/seo";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "AI Changelog Generator for Release-Ready Commits | CommitGlow",
@@ -77,7 +78,7 @@ const demoDraft = [
 
 function ArrowRightIcon() {
   return (
-    <svg aria-hidden="true" className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 16 16">
+    <svg aria-hidden="true" className="size-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 16 16">
       <path d="M3 8h10m0 0L9 4m4 4-4 4" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
     </svg>
   );
@@ -89,7 +90,7 @@ function PromptIcon() {
   );
 }
 
-function ProductIcon({ name, className = "h-5 w-5" }: { name: string; className?: string }) {
+function ProductIcon({ name, className = "size-5" }: { name: string; className?: string }) {
   const common = { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "1.5", viewBox: "0 0 24 24" } as const;
 
   switch (name) {
@@ -171,8 +172,8 @@ function ProductIcon({ name, className = "h-5 w-5" }: { name: string; className?
 function ReleasePipelinePreview() {
   return (
     <div className="relative overflow-hidden rounded-md border border-violet-200/40 bg-black/50 p-4 shadow-[0_0_52px_rgba(139,92,246,0.12)] sm:p-5">
-      <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-violet-500/20 blur-3xl" />
-      <div className="absolute bottom-10 right-6 hidden h-28 w-28 border border-violet-300/20 bg-violet-500/[0.03] lg:block" />
+      <div className="absolute -right-16 -top-16 size-44 rounded-full bg-violet-500/20 blur-3xl" />
+      <div className="absolute bottom-10 right-6 hidden size-28 border border-violet-300/20 bg-violet-500/[0.03] lg:block" />
       <div className="relative flex items-center justify-between border-b border-white/10 pb-4 font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">
         <span>release pipeline</span>
         <span className="text-violet-200">live draft</span>
@@ -203,7 +204,7 @@ function ReleasePipelinePreview() {
           <div className="h-full w-[82%] bg-violet-300/80 shadow-[0_0_18px_rgba(196,181,253,0.5)]" />
         </div>
         <div className="mt-4 flex items-center justify-between text-xs text-zinc-500">
-          <span>streaming markdown...</span>
+          <span>streaming markdown…</span>
           <span aria-hidden="true" className="cursor-blink h-4 w-2 bg-violet-300" />
         </div>
       </div>
@@ -229,7 +230,7 @@ function MiniDemo() {
           <div className="border-b border-white/10 p-5 md:border-b-0 md:border-r">
             <div className="mb-5 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 font-mono text-sm text-white">
-                <span className="grid h-8 w-8 place-items-center rounded-sm border border-violet-300/30 bg-violet-500/10 text-violet-100">
+                <span className="grid size-8 place-items-center rounded-sm border border-violet-300/30 bg-violet-500/10 text-violet-100">
                   <ProductIcon name="selection" />
                 </span>
                 Selected commits
@@ -240,9 +241,9 @@ function MiniDemo() {
               {demoCommits.map(([type, message, selected]) => (
                 <div key={message} className={selected ? "rounded-sm border border-violet-300/30 bg-violet-500/10 p-3" : "rounded-sm border border-white/10 bg-black/20 p-3 opacity-55"}>
                   <div className="flex items-start gap-3">
-                    <span className={selected ? "mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-sm border border-violet-200 bg-violet-300 text-black" : "mt-0.5 h-4 w-4 shrink-0 rounded-sm border border-white/15 bg-black/40"}>
+                    <span className={selected ? "mt-0.5 grid size-4 shrink-0 place-items-center rounded-sm border border-violet-200 bg-violet-300 text-black" : "mt-0.5 size-4 shrink-0 rounded-sm border border-white/15 bg-black/40"}>
                       {selected ? (
-                        <svg aria-hidden="true" className="h-3 w-3" fill="none" viewBox="0 0 12 12">
+                        <svg aria-hidden="true" className="size-3" fill="none" viewBox="0 0 12 12">
                           <path d="m2.5 6 2 2 5-5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
                         </svg>
                       ) : null}
@@ -258,10 +259,10 @@ function MiniDemo() {
           </div>
 
           <div className="relative overflow-hidden p-5">
-            <div className="absolute -right-12 top-8 h-32 w-32 rounded-full bg-violet-500/15 blur-3xl" />
+            <div className="absolute -right-12 top-8 size-32 rounded-full bg-violet-500/15 blur-3xl" />
             <div className="relative mb-5 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 font-mono text-sm text-white">
-                <span className="grid h-8 w-8 place-items-center rounded-sm border border-violet-300/30 bg-violet-500/10 text-violet-100">
+                <span className="grid size-8 place-items-center rounded-sm border border-violet-300/30 bg-violet-500/10 text-violet-100">
                   <ProductIcon name="spark" />
                 </span>
                 Generated draft
@@ -274,7 +275,7 @@ function MiniDemo() {
               <div className="mt-4 grid gap-3">
                 {demoDraft.map((line) => (
                   <p key={line} className="flex gap-3 text-xs leading-6 text-zinc-400">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-violet-200" />
+                    <span className="mt-2 size-1.5 shrink-0 rounded-full bg-violet-200" />
                     <span>{line}</span>
                   </p>
                 ))}
@@ -347,9 +348,9 @@ export default function Home() {
             Connect a repository, select the commits that matter, and let CommitGlow draft clean release notes with streamed AI generation and markdown output.
           </p>
           <HomepageCtaButtons />
-          <a href="/demo" className="mt-5 w-fit font-mono text-xs uppercase tracking-[0.14em] text-violet-200 underline-offset-4 transition hover:text-white hover:underline">
+          <Link href="/demo" className="mt-5 w-fit font-mono text-xs uppercase tracking-[0.14em] text-violet-200 underline-offset-4 transition hover:text-white hover:underline">
             Try a public repo first, no account needed -&gt;
-          </a>
+          </Link>
           <div className="mt-8 flex flex-wrap gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-600">
             <span className="rounded-sm border border-white/10 px-2.5 py-1.5">Repository sync</span>
             <span className="rounded-sm border border-white/10 px-2.5 py-1.5">Commit selection</span>
@@ -374,7 +375,7 @@ export default function Home() {
         <div className="mt-8 grid gap-5 md:grid-cols-4">
           {capabilities.map(([icon, title, description]) => (
             <Card key={title} className="min-h-56 overflow-hidden">
-              <div className="mb-8 grid h-11 w-11 place-items-center rounded-sm border border-violet-300/40 bg-violet-500/10 text-violet-100 shadow-[0_0_24px_rgba(139,92,246,0.16)]">
+              <div className="mb-8 grid size-11 place-items-center rounded-sm border border-violet-300/40 bg-violet-500/10 text-violet-100 shadow-[0_0_24px_rgba(139,92,246,0.16)]">
                 <ProductIcon name={icon} />
               </div>
               <h3 className="font-mono text-base text-white">{title}</h3>
@@ -392,7 +393,7 @@ export default function Home() {
             <div key={number} className="relative border-b border-white/10 p-6 last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0 md:border-white/10">
               <div className="flex items-center justify-between gap-4">
                 <span className="font-mono text-xs uppercase tracking-[0.18em] text-violet-200">{number}</span>
-                <span className="grid h-9 w-9 place-items-center rounded-sm border border-white/10 bg-white/[0.025] text-violet-100">
+                <span className="grid size-9 place-items-center rounded-sm border border-white/10 bg-white/[0.025] text-violet-100">
                   <ProductIcon name={icon} />
                 </span>
               </div>
@@ -422,7 +423,7 @@ export default function Home() {
         <div className="grid gap-4">
           {outputs.map(([icon, title, description], index) => (
             <Card key={title} className="group flex gap-5 hover:-translate-y-0.5">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-sm border border-violet-300/30 bg-violet-500/10 text-violet-100">
+              <span className="grid size-10 shrink-0 place-items-center rounded-sm border border-violet-300/30 bg-violet-500/10 text-violet-100">
                 <ProductIcon name={icon} />
               </span>
               <div>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Button } from "@commitglow/ui";
 import {
@@ -13,6 +13,7 @@ import {
   type ChangelogShareInput,
   type ChangelogSharePlatform,
 } from "@/lib/changelog-share";
+import Image from "next/image";
 import { useState } from "react";
 
 type ChangelogShareActionsProps = ChangelogShareInput & {
@@ -48,8 +49,7 @@ function copyTextFallback(value: string) {
   const textarea = document.createElement("textarea");
   textarea.value = value;
   textarea.setAttribute("readonly", "");
-  textarea.style.position = "fixed";
-  textarea.style.left = "-9999px";
+  textarea.style.cssText = "position:fixed;left:-9999px";
   document.body.appendChild(textarea);
   textarea.select();
   document.execCommand("copy");
@@ -99,7 +99,7 @@ function drawWrappedText(context: CanvasRenderingContext2D, text: string, x: num
   if (current && lines.length < maxLines) lines.push(current);
 
   lines.slice(0, maxLines).forEach((line, index) => {
-    const suffix = index === maxLines - 1 && words.length > line.split(/\s+/).length ? "…" : "";
+    const suffix = index === maxLines - 1 && words.length > line.split(/\s+/).length ? "â€¦" : "";
     context.fillText(`${line}${suffix}`, x, y + index * lineHeight);
   });
 
@@ -145,7 +145,7 @@ async function createPngImage(input: ChangelogShareInput) {
 
   context.font = "500 22px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
   context.fillStyle = "#a1a1aa";
-  const meta = [input.version?.trim(), input.source?.trim()].filter(Boolean).join(" · ") || "Release update";
+  const meta = [input.version?.trim(), input.source?.trim()].filter(Boolean).join(" Â· ") || "Release update";
   context.fillText(meta, 78, headingBottom + 22);
 
   const bullets = getChangelogBullets(input.body, 4);
@@ -175,7 +175,7 @@ async function createPngImage(input: ChangelogShareInput) {
 function createSvgImage(input: ChangelogShareInput) {
   const escape = (value: string) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const bullets = getChangelogBullets(input.body, 4);
-  const meta = [input.version?.trim(), input.source?.trim()].filter(Boolean).join(" · ") || "Release update";
+  const meta = [input.version?.trim(), input.source?.trim()].filter(Boolean).join(" Â· ") || "Release update";
   const bulletLines = (bullets.length ? bullets : [markdownToPlainText(input.body).slice(0, 180)]).map((bullet, index) => `<text x="118" y="${336 + index * 52}" fill="#e4e4e7" font-size="24">- ${escape(bullet.slice(0, 86))}</text>`).join("\n");
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">\n<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#050507"/><stop offset=".58" stop-color="#111016"/><stop offset="1" stop-color="#2e1065"/></linearGradient></defs>\n<rect width="1200" height="630" fill="url(#bg)"/>\n<circle cx="980" cy="60" r="260" fill="#8b5cf6" opacity=".22"/>\n<rect x="48" y="48" width="1104" height="534" fill="none" stroke="#c4b5fd" opacity=".34" stroke-width="2"/>\n<line x1="48" y1="120" x2="1152" y2="120" stroke="#fff" opacity=".08"/>\n<g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">\n<text x="78" y="92" fill="#c4b5fd" font-size="24" font-weight="700">// CommitGlow changelog</text>\n<text x="78" y="198" fill="#fff" font-size="54" font-weight="700">${escape((input.title.trim() || "Changelog").slice(0, 34))}</text>\n<text x="78" y="254" fill="#a1a1aa" font-size="22" font-weight="500">${escape(meta.slice(0, 78))}</text>\n${bulletLines}\n<text x="78" y="548" fill="#71717a" font-size="20" font-weight="600">${escape((input.url?.trim() || "commitglow.com").slice(0, 92))}</text>\n</g>\n</svg>\n`;
@@ -268,7 +268,7 @@ export function ChangelogShareActions({ title, version, body, source, url, class
                 {shareSteps.map((step, index) => (
                   <button key={step.mode} type="button" onClick={() => setPreviewMode(step.mode)} className={["group rounded-sm border p-3 text-left transition", previewMode === step.mode ? "border-violet-300/50 bg-violet-500/15" : index < currentStepIndex ? "border-emerald-300/20 bg-emerald-400/[0.05] hover:border-violet-300/35" : "border-white/10 bg-black/20 hover:border-violet-300/35"].join(" ")}>
                     <span className="flex items-center gap-2">
-                      <span className={["grid h-5 w-5 place-items-center rounded-full border font-mono text-[10px]", previewMode === step.mode ? "border-violet-200 bg-violet-300 text-black" : index < currentStepIndex ? "border-emerald-300/50 text-emerald-200" : "border-white/10 text-zinc-600 group-hover:text-white"].join(" ")}>{index + 1}</span>
+                      <span className={["grid size-5 place-items-center rounded-full border font-mono text-[10px]", previewMode === step.mode ? "border-violet-200 bg-violet-300 text-black" : index < currentStepIndex ? "border-emerald-300/50 text-emerald-200" : "border-white/10 text-zinc-600 group-hover:text-white"].join(" ")}>{index + 1}</span>
                       <span className={["font-mono text-[10px] uppercase tracking-[0.14em]", previewMode === step.mode ? "text-white" : "text-zinc-500 group-hover:text-white"].join(" ")}>{step.label}</span>
                     </span>
                     <span className="mt-2 block font-mono text-[10px] leading-5 text-zinc-600">{step.description}</span>
@@ -292,7 +292,7 @@ export function ChangelogShareActions({ title, version, body, source, url, class
               {previewMode === "image" ? (
                 <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
                   <div className="rounded-sm border border-white/10 bg-black/30 p-3">
-                    <img src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgPreview)}`} alt="Generated changelog social image preview" className="aspect-[1200/630] w-full rounded-sm border border-violet-300/20 object-cover" />
+                    <Image src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgPreview)}`} alt="Generated changelog social image preview" width={1200} height={630} unoptimized className="aspect-[1200/630] w-full rounded-sm border border-violet-300/20 object-cover" />
                   </div>
                   <div className="space-y-3 rounded-sm border border-white/10 bg-white/[0.02] p-4">
                     <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-violet-200">Image card</p>
@@ -321,7 +321,7 @@ export function ChangelogShareActions({ title, version, body, source, url, class
                 <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
                   <div className="rounded-2xl border border-white/10 bg-[#0b0d12] p-5 shadow-[0_24px_90px_rgba(0,0,0,0.35)]">
                     <div className="flex items-center gap-3">
-                      <div className="grid h-11 w-11 place-items-center rounded-full border border-violet-300/30 bg-violet-500/15 font-mono text-xs text-violet-100">CG</div>
+                      <div className="grid size-11 place-items-center rounded-full border border-violet-300/30 bg-violet-500/15 font-mono text-xs text-violet-100">CG</div>
                       <div>
                         <p className="font-mono text-sm text-white">CommitGlow</p>
                         <p className="font-mono text-xs text-zinc-600">@commitglow</p>
@@ -329,7 +329,7 @@ export function ChangelogShareActions({ title, version, body, source, url, class
                     </div>
                     <p className="mt-5 whitespace-pre-wrap font-mono text-sm leading-7 text-zinc-200">{shortPost}</p>
                     <div className="mt-5 rounded-xl border border-white/10 bg-black/25 p-3">
-                      <img src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgPreview)}`} alt="Post attachment preview" className="rounded-lg" />
+                      <Image src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgPreview)}`} alt="Post attachment preview" width={1200} height={630} unoptimized className="rounded-lg" />
                     </div>
                     <div className="mt-4 flex gap-5 font-mono text-xs text-zinc-600"><span>Reply</span><span>Repost</span><span>Like</span><span>Share</span></div>
                   </div>

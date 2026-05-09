@@ -32,7 +32,7 @@ export function ConnectGitHubButton({ callbackURL = "/dashboard/providers?connec
   return (
     <div className="mt-5">
       <Button type="button" variant={variant} onClick={connectGitHub} disabled={pending} className="w-full">
-        {pending ? "Connecting GitHub..." : label}
+        {pending ? "Connecting GitHub…" : label}
       </Button>
       {error ? <p className="mt-3 font-mono text-sm text-violet-200">! {error}</p> : null}
     </div>

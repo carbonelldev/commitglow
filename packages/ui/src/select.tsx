@@ -1,4 +1,4 @@
-import type { SelectHTMLAttributes } from "react";
+﻿import type { SelectHTMLAttributes } from "react";
 
 export function Select({ className, children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
@@ -14,8 +14,8 @@ export function Select({ className, children, ...props }: SelectHTMLAttributes<H
       >
         {children}
       </select>
-      <span className="pointer-events-none absolute bottom-2 right-2 top-2 flex w-8 items-center justify-center rounded-[2px] border border-white/10 bg-white/[0.03] text-zinc-500 transition group-hover/select:border-violet-300/30 group-hover/select:text-violet-100 group-focus-within/select:border-violet-200/50 group-focus-within/select:bg-violet-500/10 group-focus-within/select:text-violet-100">
-        <svg aria-hidden="true" className="h-3.5 w-3.5 transition group-focus-within/select:rotate-180" fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="1.7">
+      <span className="pointer-events-none absolute bottom-2 right-2 top-2 flex w-8 items-center justify-center rounded-[2px] border border-white/10 bg-white/[0.03] text-violet-100 transition group-hover/select:border-violet-300/30 group-focus-within/select:border-violet-200/50 group-focus-within/select:bg-violet-500/10">
+        <svg aria-hidden="true" className="size-3.5 transition group-focus-within/select:rotate-180" fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="1.7">
           <path d="m4 6 4 4 4-4" />
         </svg>
       </span>

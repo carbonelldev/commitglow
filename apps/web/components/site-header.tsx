@@ -1,4 +1,5 @@
-import { AnchorButton } from "@commitglow/ui";
+﻿import { AnchorButton } from "@commitglow/ui";
+import Link from "next/link";
 
 const fallbackRepo = "Ultro/commitglow";
 
@@ -46,7 +47,7 @@ async function getGitHubStars() {
 
 function StarIcon() {
   return (
-    <svg aria-hidden="true" className="h-3.5 w-3.5" fill="none" viewBox="0 0 16 16">
+    <svg aria-hidden="true" className="size-3.5" fill="none" viewBox="0 0 16 16">
       <path
         d="m8 1.75 1.9 3.85 4.25.62-3.08 3 .73 4.23L8 11.45l-3.8 2 .73-4.23-3.08-3 4.25-.62L8 1.75Z"
         stroke="currentColor"
@@ -63,13 +64,13 @@ export async function SiteHeader({ isAuthenticated = false }: { isAuthenticated?
   const actionHref = isAuthenticated ? "/dashboard" : "/auth/sign-in";
 
   return (
-    <header className="relative z-30 mx-auto flex w-full max-w-7xl items-center justify-between border-b border-white/10 px-5 py-5 font-mono text-xs uppercase tracking-[0.16em] text-zinc-300 sm:px-8">
-      <a href="/" className="text-white">&gt;_ CommitGlow</a>
+    <header className="relative z-30 mx-auto flex w-full max-w-7xl items-center justify-between border-b border-white/10 p-5 font-mono text-xs uppercase tracking-[0.16em] text-zinc-300 sm:px-8">
+      <Link href="/" className="text-white">&gt;_ CommitGlow</Link>
       <nav className="hidden items-center gap-10 md:flex">
-        <a className="text-violet-200" href="/#features">[ Features ]</a>
-        <a href="/demo">Demo</a>
-        <a href="/#how">How it Works</a>
-        <a href="/pricing">Pricing</a>
+        <Link className="text-violet-200" href="/#features">[ Features ]</Link>
+        <Link href="/demo">Demo</Link>
+        <Link href="/#how">How it Works</Link>
+        <Link href="/pricing">Pricing</Link>
       </nav>
       <div className="hidden items-center gap-3 md:flex">
         <a
@@ -97,10 +98,10 @@ export async function SiteHeader({ isAuthenticated = false }: { isAuthenticated?
         </summary>
         <div className="absolute right-0 top-full z-50 mt-3 w-[calc(100vw-2.5rem)] max-w-sm overflow-hidden rounded-sm border border-violet-300/25 bg-[#050507]/98 shadow-[0_24px_80px_rgba(0,0,0,0.55),0_0_40px_rgba(139,92,246,0.12)] backdrop-blur">
           <nav className="grid border-b border-white/10" aria-label="Mobile navigation">
-            <a className="px-4 py-4 text-violet-200 transition hover:bg-white/[0.03] hover:text-white" href="/#features">[ Features ]</a>
-            <a className="px-4 py-4 transition hover:bg-white/[0.03] hover:text-white" href="/demo">Demo</a>
-            <a className="px-4 py-4 transition hover:bg-white/[0.03] hover:text-white" href="/#how">How it Works</a>
-            <a className="px-4 py-4 transition hover:bg-white/[0.03] hover:text-white" href="/pricing">Pricing</a>
+            <Link className="p-4 text-violet-200 transition hover:bg-white/[0.03] hover:text-white" href="/#features">[ Features ]</Link>
+            <Link className="p-4 transition hover:bg-white/[0.03] hover:text-white" href="/demo">Demo</Link>
+            <Link className="p-4 transition hover:bg-white/[0.03] hover:text-white" href="/#how">How it Works</Link>
+            <Link className="p-4 transition hover:bg-white/[0.03] hover:text-white" href="/pricing">Pricing</Link>
           </nav>
           <div className="grid gap-3 p-3">
             <a

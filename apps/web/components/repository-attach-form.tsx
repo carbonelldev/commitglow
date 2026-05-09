@@ -24,7 +24,7 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
 
   return (
     <Button type="submit" variant="primary" disabled={pending || disabled} className="w-full">
-      {pending ? "Attaching..." : "Attach Repository"}
+      {pending ? "Attaching…" : "Attach Repository"}
     </Button>
   );
 }
@@ -97,9 +97,10 @@ export function RepositoryAttachForm({ projects, fixedProjectId, fixedProjectNam
       {fixedProjectId ? (
         <input type="hidden" name="projectId" value={fixedProjectId} />
       ) : (
-        <label className="block">
+        <label htmlFor="repository-project" className="block">
           <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Project</span>
           <Select
+            id="repository-project"
             name="projectId"
             required
             disabled={disabled}
@@ -114,13 +115,13 @@ export function RepositoryAttachForm({ projects, fixedProjectId, fixedProjectNam
       {fixedProjectName ? <p className="font-mono text-xs uppercase tracking-[0.14em] text-zinc-600">Project: {fixedProjectName}</p> : null}
       <div className="rounded-sm border border-white/10 bg-black/20 p-4">
         <div className="flex flex-col gap-3 sm:flex-row">
-          <label className="block min-w-0 flex-1">
+          <label htmlFor="repository-provider-search" className="block min-w-0 flex-1">
             <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Search connected providers</span>
-            <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search all connected Git accounts" disabled={disabled || lookupPending} />
+            <Input id="repository-provider-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search all connected Git accounts" disabled={disabled || lookupPending} />
           </label>
           <div className="flex items-end">
             <Button type="button" onClick={searchRepositories} disabled={disabled || lookupPending} className="w-full sm:w-auto">
-              {lookupPending ? "Searching..." : "Search"}
+              {lookupPending ? "Searching…" : "Search"}
             </Button>
           </div>
         </div>
@@ -162,9 +163,9 @@ export function RepositoryAttachForm({ projects, fixedProjectId, fixedProjectNam
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-violet-200">Selected repository</p>
           <p className="mt-2 font-mono text-base text-white">{selectedRepository.fullName}</p>
           <p className="mt-1 font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">{selectedRepository.provider}</p>
-          <label className="mt-4 block">
+          <label htmlFor="repository-branch" className="mt-4 block">
             <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Branch</span>
-            <Select name="selectedBranch" value={selectedBranch} onChange={(event) => setSelectedBranch(event.target.value)}>
+            <Select id="repository-branch" name="selectedBranch" value={selectedBranch} onChange={(event) => setSelectedBranch(event.target.value)}>
               {branches.map((branch) => (
                 <option key={branch} value={branch}>{branch}</option>
               ))}
@@ -173,10 +174,10 @@ export function RepositoryAttachForm({ projects, fixedProjectId, fixedProjectNam
         </div>
       ) : null}
 
-      <label className="block">
+      <label htmlFor="repository-url" className="block">
         <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Repository URL</span>
         {selectedRepository ? <input type="hidden" name="repositoryUrl" value={selectedRepository.url} /> : null}
-        <Input name={selectedRepository ? undefined : "repositoryUrl"} value={selectedRepository?.url ?? query} onChange={(event) => setQuery(event.target.value)} placeholder="https://gitlab.com/group/project or owner/repo" required disabled={disabled} readOnly={Boolean(selectedRepository)} />
+        <Input id="repository-url" name={selectedRepository ? undefined : "repositoryUrl"} value={selectedRepository?.url ?? query} onChange={(event) => setQuery(event.target.value)} placeholder="https://gitlab.com/group/project or owner/repo" required disabled={disabled} readOnly={Boolean(selectedRepository)} />
         <span className="mt-2 block text-xs leading-5 text-zinc-600">Search checks all connected GitHub and GitLab accounts. Public URLs from any provider can be entered manually.</span>
       </label>
       {selectedRepository ? (

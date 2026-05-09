@@ -1,5 +1,15 @@
 import { seo } from "@/lib/seo";
 
+function JsonLdScript({ value }: { value: unknown }) {
+  return (
+    <script
+      type="application/ld+json"
+      // react-doctor-disable-next-line react/no-danger
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(value) }}
+    />
+  );
+}
+
 export function WebSiteJsonLd() {
   const jsonLd = {
     "@context": "https://schema.org",
@@ -18,12 +28,7 @@ export function WebSiteJsonLd() {
     },
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
-  );
+  return <JsonLdScript value={jsonLd} />;
 }
 
 export function OrganizationJsonLd() {
@@ -49,12 +54,7 @@ export function OrganizationJsonLd() {
     sameAs: ["https://github.com/carbonelldev/commitglow"],
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
-  );
+  return <JsonLdScript value={jsonLd} />;
 }
 
 export function SoftwareApplicationJsonLd() {
@@ -74,12 +74,7 @@ export function SoftwareApplicationJsonLd() {
     inLanguage: "en",
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
-  );
+  return <JsonLdScript value={jsonLd} />;
 }
 
 type FAQItem = { question: string; answer: string };
@@ -98,10 +93,5 @@ export function FAQPageJsonLd({ items }: { items: FAQItem[] }) {
     })),
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
-  );
+  return <JsonLdScript value={jsonLd} />;
 }

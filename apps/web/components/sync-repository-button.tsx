@@ -20,13 +20,13 @@ function SyncSubmitButton() {
       disabled={pending}
       className="rounded-sm border border-violet-300/30 bg-violet-500/10 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-violet-100 transition hover:border-violet-200/60 hover:bg-violet-500/20 disabled:opacity-50"
     >
-      {pending ? "Syncing..." : "Sync Commits"}
+      {pending ? "Syncing…" : "Sync Commits"}
     </button>
   );
 }
 
 export function SyncRepositoryButton({ repositoryId, onSynced }: { repositoryId: string; onSynced?: (state: SyncCommitsFormState) => void | Promise<void> }) {
-  const router = useRouter();
+  const { refresh } = useRouter();
   const onSyncedRef = useRef(onSynced);
   const [state, formAction] = useActionState<SyncCommitsFormState, FormData>(
     async () => syncRepositoryCommits(repositoryId),
@@ -42,9 +42,9 @@ export function SyncRepositoryButton({ repositoryId, onSynced }: { repositoryId:
       return;
     }
 
-    router.refresh();
+    refresh();
     void onSyncedRef.current?.(state);
-  }, [router, state]);
+  }, [refresh, state]);
 
   return (
     <div>

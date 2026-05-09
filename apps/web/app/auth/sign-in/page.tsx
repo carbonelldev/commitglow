@@ -3,6 +3,7 @@ import { AuthForm } from "@/components/auth-form";
 import { auth } from "@/lib/auth";
 import { AnchorButton } from "@commitglow/ui";
 import { headers } from "next/headers";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Sign In | CommitGlow",
@@ -19,10 +20,10 @@ function AuthShell({ children }: { children: React.ReactNode }) {
   return (
     <main className="min-h-screen px-5 py-8">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between font-mono text-xs uppercase tracking-[0.18em]">
-        <a href="/" className="text-white transition hover:text-violet-200">&gt;_ CommitGlow</a>
+        <Link href="/" className="text-white transition hover:text-violet-200">&gt;_ CommitGlow</Link>
         <div className="flex items-center gap-5">
-          <a href="/demo" className="text-violet-200 transition hover:text-white">Try Demo</a>
-          <a href="/" className="text-zinc-500 transition hover:text-white">&lt;- Back</a>
+          <Link href="/demo" className="text-violet-200 transition hover:text-white">Try Demo</Link>
+          <Link href="/" className="text-zinc-500 transition hover:text-white">&lt;- Back</Link>
         </div>
       </div>
       <div className="auth-panel-enter mx-auto flex min-h-[calc(100vh-7rem)] w-full max-w-6xl items-center justify-center py-10">

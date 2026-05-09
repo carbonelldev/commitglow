@@ -12,16 +12,25 @@ import { notFound } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 function getChangelogSummary(body: string) {
-  const lines = body
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .filter((line) => !line.startsWith("#"));
+  const bullets: string[] = [];
 
-  const bullets = lines
-    .map((line) => line.replace(/^([-*]|\d+\.)\s+/, ""))
-    .filter((line) => line.length > 0)
-    .slice(0, 3);
+  for (const rawLine of body.split("\n")) {
+    const line = rawLine.trim();
+
+    if (!line || line.startsWith("#")) {
+      continue;
+    }
+
+    const bullet = line.replace(/^([-*]|\d+\.)\s+/, "");
+
+    if (bullet.length > 0) {
+      bullets.push(bullet);
+    }
+
+    if (bullets.length === 3) {
+      break;
+    }
+  }
 
   if (bullets.length > 0) {
     return bullets;
@@ -122,7 +131,7 @@ export default async function ProjectChangelogsPage({ params }: { params: Promis
                       <ul className="mt-3 space-y-2">
                         {summary.map((item, summaryIndex) => (
                           <li key={`${summaryIndex}-${item}`} className="flex gap-3 font-mono text-xs leading-6 text-zinc-400">
-                            <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-violet-200/70" />
+                            <span className="mt-2 size-1 shrink-0 rounded-full bg-violet-200/70" />
                             <span className="line-clamp-2">{item}</span>
                           </li>
                         ))}

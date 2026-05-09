@@ -6,6 +6,7 @@ import { type ManualChangelogFormState } from "@/app/dashboard/projects/[slug]/c
 import { ChangelogShareActions } from "@/components/changelog-share-actions";
 import type { ChangelogGenerationOptions } from "@/lib/ai";
 import { Button } from "@commitglow/ui";
+import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 
@@ -63,7 +64,7 @@ function SaveButton() {
 
   return (
     <Button type="submit" variant="primary" disabled={pending} className="w-full">
-      {pending ? "Saving..." : "Save Changelog Draft"}
+      {pending ? "Saving…" : "Save Changelog Draft"}
     </Button>
   );
 }
@@ -278,7 +279,7 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
           <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-700">Each generate or regenerate action starts a new AI generation.</p>
         </div>
         <Button type="button" variant="primary" onClick={startGeneration} disabled={commits.length === 0 || status === "generating"} className="w-full">
-          {status === "generating" ? "Generating..." : status === "done" ? "Regenerate with AI" : "Generate with AI"}
+          {status === "generating" ? "Generating…" : status === "done" ? "Regenerate with AI" : "Generate with AI"}
         </Button>
       </div>
 
@@ -303,7 +304,7 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
                 {steps.map((step) => (
                   <div key={step.label} className={["rounded-sm border px-3 py-2", step.done ? "border-violet-300/30 bg-violet-500/10" : step.active ? "border-violet-300/40 bg-white/[0.04]" : "border-white/10 bg-black/20"].join(" ")}>
                     <div className="flex items-center gap-2">
-                      <span className={["h-1.5 w-1.5 rounded-full", step.done ? "bg-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.6)]" : step.active ? "animate-pulse bg-violet-300 shadow-[0_0_12px_rgba(139,92,246,0.7)]" : "bg-zinc-800"].join(" ")} />
+                      <span className={["size-1.5 rounded-full", step.done ? "bg-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.6)]" : step.active ? "animate-pulse bg-violet-300 shadow-[0_0_12px_rgba(139,92,246,0.7)]" : "bg-zinc-800"].join(" ")} />
                       <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-500">{step.label}</span>
                     </div>
                   </div>
@@ -363,7 +364,7 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
                         isAnimating={status === "generating"}
                         shikiTheme={["github-dark", "github-dark"]}
                       >
-                        {output || "// Waiting for output..."}
+                        {output || "// Waiting for output…"}
                       </Streamdown>
                     )}
                   </div>
@@ -371,7 +372,7 @@ export function StreamChangelogGenerator({ projectId, projectSlug, repositoryId,
                   {status === "error" ? (
                     <div className="mt-4 rounded-sm border border-violet-300/30 bg-violet-500/10 p-4 font-mono text-sm text-violet-100">
                       ! {error}
-                      {error.toLowerCase().includes("generation limit") ? <a href="/pricing" className="mt-3 block text-xs uppercase tracking-[0.14em] text-white underline decoration-violet-200/50 underline-offset-4">View upgrade options</a> : null}
+                      {error.toLowerCase().includes("generation limit") ? <Link href="/pricing" className="mt-3 block text-xs uppercase tracking-[0.14em] text-white underline decoration-violet-200/50 underline-offset-4">View upgrade options</Link> : null}
                       <Button type="button" variant="ghost" onClick={startGeneration} className="mt-3">Retry</Button>
                     </div>
                   ) : null}

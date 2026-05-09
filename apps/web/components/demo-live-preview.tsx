@@ -84,7 +84,7 @@ function CommitSkeletonRows() {
 function EmptyPreview() {
   return (
     <div className="relative overflow-hidden rounded-md border border-white/10 bg-black/30 p-5 font-mono shadow-[0_30px_100px_rgba(0,0,0,0.25)]">
-      <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-violet-500/15 blur-3xl" />
+      <div className="absolute -right-16 -top-16 size-48 rounded-full bg-violet-500/15 blur-3xl" />
       <div className="relative border-b border-white/10 pb-4 text-xs uppercase tracking-[0.16em] text-zinc-600">demo workbench</div>
       <div className="relative mt-8 grid gap-4 text-sm leading-7 text-zinc-400">
         <p>Paste a public repo or swap a Git host URL to CommitGlow. We fetch commits, stream the same AI changelog prompt as the dashboard, and make the result shareable.</p>
@@ -307,7 +307,7 @@ export function DemoLivePreview({ repoInput, shareHref }: { repoInput: string; s
               <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-600">{context?.defaultBranch ?? "loading branch"}</span>
             </div>
             <h2 className="mt-3 break-all font-mono text-2xl tracking-[-0.05em] text-white sm:break-normal">{context?.repo ?? repoInput}</h2>
-            <p className="mt-3 max-w-2xl font-mono text-sm leading-7 text-zinc-400">{context?.description ?? "Resolving public repository and recent commits..."}</p>
+            <p className="mt-3 max-w-2xl font-mono text-sm leading-7 text-zinc-400">{context?.description ?? "Resolving public repository and recent commits…"}</p>
           </div>
           {context ? (
             <div className="flex flex-col gap-3 sm:items-end">
@@ -321,7 +321,7 @@ export function DemoLivePreview({ repoInput, shareHref }: { repoInput: string; s
           {steps.map((step) => (
             <div key={step.key} className={["rounded-sm border px-3 py-2", step.done ? "border-violet-300/30 bg-violet-500/10" : step.active ? "border-violet-300/40 bg-white/[0.04]" : "border-white/10 bg-black/20"].join(" ")}>
               <div className="flex items-center gap-2">
-                <span className={["h-1.5 w-1.5 rounded-full", step.done ? "bg-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.6)]" : step.active ? "animate-pulse bg-violet-300 shadow-[0_0_12px_rgba(139,92,246,0.7)]" : "bg-zinc-800"].join(" ")} />
+                <span className={["size-1.5 rounded-full", step.done ? "bg-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.6)]" : step.active ? "animate-pulse bg-violet-300 shadow-[0_0_12px_rgba(139,92,246,0.7)]" : "bg-zinc-800"].join(" ")} />
                 <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-500">{step.label}</span>
               </div>
             </div>
@@ -378,7 +378,7 @@ export function DemoLivePreview({ repoInput, shareHref }: { repoInput: string; s
                 <Streamdown className="commitglow-markdown" plugins={{ code }} caret={phase === "writing" ? "block" : undefined} isAnimating={phase === "writing"} shikiTheme={["github-dark", "github-dark"]}>{output}</Streamdown>
               </>
             ) : (
-              <><SkeletonLines /><p className="mt-4 font-mono text-xs uppercase tracking-[0.14em] text-zinc-600">{phase === "reading" ? "Reading public repository..." : phase === "reasoning" ? "Preparing AI stream..." : "Waiting for markdown..."}</p></>
+              <><SkeletonLines /><p className="mt-4 font-mono text-xs uppercase tracking-[0.14em] text-zinc-600">{phase === "reading" ? "Reading public repository…" : phase === "reasoning" ? "Preparing AI stream…" : "Waiting for markdown…"}</p></>
             )}
           </div>
 

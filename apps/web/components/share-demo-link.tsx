@@ -15,8 +15,7 @@ export function ShareDemoLink({ href }: { href: string }) {
         const textarea = document.createElement("textarea");
         textarea.value = href;
         textarea.setAttribute("readonly", "");
-        textarea.style.position = "fixed";
-        textarea.style.left = "-9999px";
+        textarea.style.cssText = "position:fixed;left:-9999px";
         document.body.appendChild(textarea);
         textarea.select();
         document.execCommand("copy");

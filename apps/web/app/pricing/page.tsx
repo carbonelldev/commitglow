@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { AnchorButton, Card } from "@commitglow/ui";
 import { planList, plans } from "@/lib/plans";
 import { isPolarCheckoutConfigured } from "@/lib/polar-billing";
@@ -10,18 +10,18 @@ import { FAQPageJsonLd } from "@/components/json-ld";
 import { seo } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Pricing — AI Changelog & Release Notes Plans | CommitGlow",
+  title: "Pricing â€” AI Changelog & Release Notes Plans | CommitGlow",
   description: "Simple pricing for cleaner changelogs, release notes, and launch posts. Compare Starter, Pro, Team, and Enterprise options for CommitGlow.",
   alternates: {
     canonical: `${seo.siteUrl}/pricing`,
   },
   openGraph: {
-    title: "Pricing — AI Changelog & Release Notes Plans | CommitGlow",
+    title: "Pricing â€” AI Changelog & Release Notes Plans | CommitGlow",
     description: "Simple pricing for cleaner changelogs, release notes, and launch posts. Compare Starter, Pro, Team, and Enterprise options.",
     url: `${seo.siteUrl}/pricing`,
   },
   twitter: {
-    title: "Pricing — AI Changelog & Release Notes Plans | CommitGlow",
+    title: "Pricing â€” AI Changelog & Release Notes Plans | CommitGlow",
     description: "Compare CommitGlow pricing for Starter, Pro, Team, and Enterprise release workflows.",
   },
 };
@@ -66,7 +66,7 @@ const comparisonRows = [
 
 function CheckIcon() {
   return (
-    <svg aria-hidden="true" className="mt-0.5 h-4 w-4 flex-none text-violet-200" fill="none" viewBox="0 0 16 16">
+    <svg aria-hidden="true" className="mt-0.5 size-4 flex-none text-violet-200" fill="none" viewBox="0 0 16 16">
       <path d="m3 8 3 3 7-7" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
     </svg>
   );
@@ -74,7 +74,7 @@ function CheckIcon() {
 
 function ArrowRightIcon() {
   return (
-    <svg aria-hidden="true" className="h-3.5 w-3.5" fill="none" viewBox="0 0 16 16">
+    <svg aria-hidden="true" className="size-3.5" fill="none" viewBox="0 0 16 16">
       <path d="M3 8h10m0 0L9 4m4 4-4 4" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
     </svg>
   );

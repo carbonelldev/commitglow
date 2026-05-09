@@ -33,7 +33,17 @@ function isExplicitProviderConnection(metadata: unknown) {
 }
 
 function parseScopes(value: string | null | undefined) {
-  return new Set((value ?? "").split(/[\s,]+/).map((scope) => scope.trim()).filter(Boolean));
+  const scopes = new Set<string>();
+
+  for (const rawScope of (value ?? "").split(/[\s,]+/)) {
+    const scope = rawScope.trim();
+
+    if (scope) {
+      scopes.add(scope);
+    }
+  }
+
+  return scopes;
 }
 
 async function verifyRepositoryScopes(provider: AccountProvider, accessToken: string, savedScope: string | null | undefined) {
@@ -87,17 +97,18 @@ async function syncProvider(provider: AccountProvider, userId: string, organizat
     .select({ providerAccountId: integrations.providerAccountId, metadata: integrations.metadata })
     .from(integrations)
     .where(and(eq(integrations.organizationId, organizationId), eq(integrations.provider, provider)));
-  const explicitConnectedAccountIds = new Set(connectedProviderAccounts.filter((provider) => isExplicitProviderConnection(provider.metadata)).flatMap((provider) => (provider.providerAccountId ? [provider.providerAccountId] : [])));
+  const explicitConnectedAccountIds = new Set<string>();
+
+  for (const provider of connectedProviderAccounts) {
+    if (provider.providerAccountId && isExplicitProviderConnection(provider.metadata)) {
+      explicitConnectedAccountIds.add(provider.providerAccountId);
+    }
+  }
+
   const providerAccount = providerAccounts.find((candidate) => !explicitConnectedAccountIds.has(candidate.accountId)) ?? providerAccounts[0];
 
   if (!providerAccount.accessToken) {
     return { status: "error", message: `No ${provider} account token was found. Try connecting again.` };
-  }
-
-  const permissionCheck = await verifyRepositoryScopes(provider, providerAccount.accessToken, providerAccount.scope);
-
-  if (!permissionCheck.ok) {
-    return { status: "error", message: permissionCheck.message };
   }
 
   const [existing] = await db
@@ -108,6 +119,12 @@ async function syncProvider(provider: AccountProvider, userId: string, organizat
 
   if (existing && isExplicitProviderConnection(existing.metadata)) {
     return { status: "success", message: `${provider} is already connected to this workspace.` };
+  }
+
+  const permissionCheck = await verifyRepositoryScopes(provider, providerAccount.accessToken, providerAccount.scope);
+
+  if (!permissionCheck.ok) {
+    return { status: "error", message: permissionCheck.message };
   }
 
   if (existing) {

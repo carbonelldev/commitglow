@@ -4,7 +4,10 @@ import { SiteHeader } from "@/components/site-header";
 import { getStatusActionHref, type HttpStatusPage } from "@/lib/http-status-pages";
 
 export async function HttpStatusScreen({ page }: { page: HttpStatusPage }) {
-  const digits = String(page.code).split("");
+  const digits = String(page.code).split("").map((digit, position) => ({
+    digit,
+    key: `${page.code}-${position}`
+  }));
 
   return (
     <main className="flex min-h-screen flex-col overflow-hidden">
@@ -39,9 +42,9 @@ export async function HttpStatusScreen({ page }: { page: HttpStatusPage }) {
               <span>{page.code >= 500 ? "server" : "client"}</span>
             </div>
             <div className="grid grid-cols-3 gap-3 py-10 sm:gap-5">
-              {digits.map((digit, index) => (
-                <div key={`${digit}-${index}`} className="flex aspect-square items-center justify-center rounded-md border border-violet-300/30 bg-violet-500/[0.08] font-mono text-6xl text-white shadow-[0_0_40px_rgba(139,92,246,0.12)] sm:text-7xl">
-                  {digit}
+              {digits.map((digit) => (
+                <div key={digit.key} className="flex aspect-square items-center justify-center rounded-md border border-violet-300/30 bg-violet-500/[0.08] font-mono text-6xl text-white shadow-[0_0_40px_rgba(139,92,246,0.12)] sm:text-7xl">
+                  {digit.digit}
                 </div>
               ))}
             </div>

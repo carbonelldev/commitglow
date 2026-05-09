@@ -8,15 +8,18 @@ import { Card } from "@commitglow/ui";
 import { projects, repositories } from "@commitglow/db/schema";
 import { asc, count, desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
+const projectDateFormatter = new Intl.DateTimeFormat("en", {
+  month: "short",
+  day: "numeric",
+  year: "numeric"
+});
+
 function formatDate(value: Date) {
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    year: "numeric"
-  }).format(value);
+  return projectDateFormatter.format(value);
 }
 
 export default async function ProjectsPage() {
@@ -30,33 +33,35 @@ export default async function ProjectsPage() {
   const accountPlan = toPlanSlug(session.user.plan);
   const projectLimit = getProjectLimit(accountPlan);
   const projectLimitLabel = formatProjectLimit(accountPlan);
-  const [workspaceProjectCount] = await db.select({ value: count() }).from(projects).where(eq(projects.organizationId, organization.id));
+  const [[workspaceProjectCount], userProjects, projectRepositories] = await Promise.all([
+    db.select({ value: count() }).from(projects).where(eq(projects.organizationId, organization.id)),
+    db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        slug: projects.slug,
+        description: projects.description,
+        createdAt: projects.createdAt
+      })
+      .from(projects)
+      .where(eq(projects.organizationId, organization.id))
+      .orderBy(desc(projects.createdAt)),
+    db
+      .select({
+        id: repositories.id,
+        projectId: repositories.projectId,
+        provider: repositories.provider,
+        owner: repositories.owner,
+        name: repositories.name,
+        url: repositories.url,
+        defaultBranch: repositories.defaultBranch
+      })
+      .from(repositories)
+      .innerJoin(projects, eq(repositories.projectId, projects.id))
+      .where(eq(projects.organizationId, organization.id))
+      .orderBy(asc(repositories.owner), asc(repositories.name))
+  ]);
   const reachedProjectLimit = projectLimit !== null && (workspaceProjectCount?.value ?? 0) >= projectLimit;
-  const userProjects = await db
-    .select({
-      id: projects.id,
-      name: projects.name,
-      slug: projects.slug,
-      description: projects.description,
-      createdAt: projects.createdAt
-    })
-    .from(projects)
-    .where(eq(projects.organizationId, organization.id))
-    .orderBy(desc(projects.createdAt));
-  const projectRepositories = await db
-    .select({
-      id: repositories.id,
-      projectId: repositories.projectId,
-      provider: repositories.provider,
-      owner: repositories.owner,
-      name: repositories.name,
-      url: repositories.url,
-      defaultBranch: repositories.defaultBranch
-    })
-    .from(repositories)
-    .innerJoin(projects, eq(repositories.projectId, projects.id))
-    .where(eq(projects.organizationId, organization.id))
-    .orderBy(asc(repositories.owner), asc(repositories.name));
   const repositoriesByProject = projectRepositories.reduce<Record<string, typeof projectRepositories>>((acc, repository) => {
     acc[repository.projectId] = [...(acc[repository.projectId] ?? []), repository];
     return acc;
@@ -90,13 +95,13 @@ export default async function ProjectsPage() {
                   <article id={`project-${project.slug}`} key={project.id} className="scroll-mt-8 rounded-sm border border-white/10 bg-white/[0.02] p-4 transition hover:border-violet-300/40 target:border-violet-300/60 target:bg-violet-500/10">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <a href={`/dashboard/projects/${project.slug}`} className="font-mono text-base text-white transition hover:text-violet-200">{project.name}</a>
+                        <Link href={`/dashboard/projects/${project.slug}`} className="font-mono text-base text-white transition hover:text-violet-200">{project.name}</Link>
                         <p className="mt-1 font-mono text-xs text-zinc-500">/{project.slug}</p>
                       </div>
                       <span className="font-mono text-xs text-zinc-600">{formatDate(project.createdAt)}</span>
                     </div>
                     <p className="mt-4 font-mono text-sm leading-7 text-zinc-400">{project.description || "No description yet."}</p>
-                    <a href={`/dashboard/projects/${project.slug}`} className="mt-4 inline-flex font-mono text-xs uppercase tracking-[0.14em] text-violet-200 transition hover:text-white">Open project -&gt;</a>
+                    <Link href={`/dashboard/projects/${project.slug}`} className="mt-4 inline-flex font-mono text-xs uppercase tracking-[0.14em] text-violet-200 transition hover:text-white">Open project -&gt;</Link>
                     <div className="mt-4 flex gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-600">
                       <span className="rounded-sm border border-white/10 px-2 py-1">Repos {attachedRepositories.length}</span>
                       <span className="rounded-sm border border-white/10 px-2 py-1">Changelogs 0</span>

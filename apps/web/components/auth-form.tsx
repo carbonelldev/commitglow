@@ -11,12 +11,12 @@ type AuthMethod = "github" | "google" | "email";
 const lastMethodKey = "commitglow:last-auth-method";
 
 function Spinner() {
-  return <span className="h-3 w-3 animate-spin rounded-full border border-white/30 border-t-white" aria-hidden="true" />;
+  return <span className="size-3 animate-spin rounded-full border border-white/30 border-t-white" aria-hidden="true" />;
 }
 
 function GithubIcon() {
   return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <svg className="size-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M12 2C6.48 2 2 6.58 2 12.26c0 4.53 2.87 8.37 6.84 9.73.5.09.68-.22.68-.49 0-.24-.01-1.04-.01-1.89-2.51.47-3.16-.63-3.36-1.21-.11-.3-.6-1.21-1.03-1.46-.35-.19-.85-.66-.01-.67.79-.01 1.35.75 1.54 1.06.9 1.55 2.34 1.11 2.91.85.09-.67.35-1.11.64-1.37-2.22-.26-4.55-1.14-4.55-5.08 0-1.12.39-2.04 1.03-2.76-.1-.26-.45-1.31.1-2.72 0 0 .84-.28 2.75 1.05A9.28 9.28 0 0 1 12 6.96c.85 0 1.71.12 2.51.34 1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.46.1 2.72.64.72 1.03 1.64 1.03 2.76 0 3.95-2.34 4.82-4.57 5.08.36.32.68.93.68 1.89 0 1.37-.01 2.47-.01 2.8 0 .27.18.59.69.49A10.08 10.08 0 0 0 22 12.26C22 6.58 17.52 2 12 2Z" />
     </svg>
   );
@@ -24,7 +24,7 @@ function GithubIcon() {
 
 function GoogleIcon() {
   return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg className="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path fill="currentColor" d="M21.6 12.23c0-.74-.07-1.45-.19-2.12H12v4.01h5.38a4.6 4.6 0 0 1-1.99 3.02v2.61h3.23c1.89-1.79 2.98-4.42 2.98-7.52Z" />
       <path fill="currentColor" d="M12 22c2.7 0 4.96-.91 6.62-2.47l-3.23-2.61c-.9.62-2.04.98-3.39.98-2.6 0-4.8-1.83-5.59-4.27H3.07v2.69A9.98 9.98 0 0 0 12 22Z" opacity="0.8" />
       <path fill="currentColor" d="M6.41 13.63A6.18 6.18 0 0 1 6.08 12c0-.57.12-1.12.33-1.63V7.68H3.07A10.26 10.26 0 0 0 2 12c0 1.56.36 3.03 1.07 4.32l3.34-2.69Z" opacity="0.6" />
@@ -39,7 +39,7 @@ function LastUsed({ method, current }: { method: AuthMethod | null; current: Aut
   }
 
   return (
-    <span className="last-used-tag pointer-events-none absolute -right-1 -top-2 flex items-center gap-1.5 rounded-full border border-violet-300/25 bg-black px-2.5 py-1 text-[9px] text-violet-100 shadow-[0_0_18px_rgba(139,92,246,0.25)]" aria-label="Last used sign-in method">
+    <span className="last-used-tag pointer-events-none absolute -right-1 -top-2 flex items-center gap-1.5 rounded-full border border-violet-300/25 bg-[#050507] px-2.5 py-1 text-[9px] text-violet-100 shadow-[0_0_18px_rgba(139,92,246,0.25)]" aria-label="Last used sign-in method">
       <span className="last-used-line h-px w-4 bg-gradient-to-r from-transparent to-violet-200" aria-hidden="true" />
       Last used
     </span>
@@ -55,7 +55,7 @@ function passwordChecks(password: string) {
 }
 
 export function AuthForm({ mode }: { mode: AuthMode }) {
-  const router = useRouter();
+  const { push, refresh } = useRouter();
   const formId = useId();
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -88,17 +88,17 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     const canTransition = "startViewTransition" in document && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (canTransition) {
-      (document as Document & { startViewTransition: (callback: () => void) => void }).startViewTransition(() => router.push(href));
+      (document as Document & { startViewTransition: (callback: () => void) => void }).startViewTransition(() => push(href));
       return;
     }
 
-    router.push(href);
+    push(href);
   }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    setStatus(isSignUp ? "Creating your account..." : "Checking your credentials...");
+    setStatus(isSignUp ? "Creating your account…" : "Checking your credentials…");
     setPendingMethod("email");
 
     const formData = new FormData(event.currentTarget);
@@ -118,14 +118,14 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     }
 
     rememberMethod("email");
-    setStatus("Session ready. Opening dashboard...");
-    router.push("/dashboard");
-    router.refresh();
+    setStatus("Session ready. Opening dashboard…");
+    push("/dashboard");
+    refresh();
   }
 
   async function signInWithProvider(provider: "github" | "google") {
     setError(null);
-    setStatus(`Connecting ${provider === "github" ? "GitHub" : "Google"}...`);
+    setStatus(`Connecting ${provider === "github" ? "GitHub" : "Google"}…`);
     setPendingMethod(provider);
     rememberMethod(provider);
 
@@ -155,14 +155,14 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         <Button type="button" className="auth-provider relative min-h-14 justify-center border-white/20 bg-white/[0.03] hover:bg-white/[0.06]" disabled={isPending} onClick={() => signInWithProvider("github")} aria-label="Continue with GitHub">
           <span className="inline-flex items-center justify-center gap-3">
             {pendingMethod === "github" ? <Spinner /> : <GithubIcon />}
-            <span>{pendingMethod === "github" ? "Connecting GitHub..." : "Continue with GitHub"}</span>
+            <span>{pendingMethod === "github" ? "Connecting GitHub…" : "Continue with GitHub"}</span>
           </span>
           <LastUsed method={lastMethod} current="github" />
         </Button>
         <Button type="button" className="auth-provider relative min-h-14 justify-center border-white/20 bg-white/[0.03] hover:bg-white/[0.06]" disabled={isPending} onClick={() => signInWithProvider("google")} aria-label="Continue with Google">
           <span className="inline-flex items-center justify-center gap-3">
             {pendingMethod === "google" ? <Spinner /> : <GoogleIcon />}
-            <span>{pendingMethod === "google" ? "Connecting Google..." : "Continue with Google"}</span>
+            <span>{pendingMethod === "google" ? "Connecting Google…" : "Continue with Google"}</span>
           </span>
           <LastUsed method={lastMethod} current="google" />
         </Button>
@@ -222,7 +222,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         </div>
         <Button className="min-h-12 w-full" variant="primary" disabled={isPending} aria-describedby={feedbackId}>
           {pendingMethod === "email" ? <Spinner /> : null}
-          {pendingMethod === "email" ? (isSignUp ? "Creating account..." : "Signing in...") : isSignUp ? "Create Account" : "Sign In"}
+          {pendingMethod === "email" ? (isSignUp ? "Creating account…" : "Signing in…") : isSignUp ? "Create Account" : "Sign In"}
         </Button>
       </form>
       <p className="mt-6 font-mono text-sm text-zinc-500">

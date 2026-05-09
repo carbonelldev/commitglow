@@ -27,34 +27,38 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const organizationContext = await getActiveOrganization(session.user);
   const organization = organizationContext.active;
-  const usage = await getPlanUsageSnapshot(session.user, organization);
-  const userProjects = await db
-    .select({
-      id: projects.id,
-      name: projects.name,
-      slug: projects.slug
-    })
-    .from(projects)
-    .where(eq(projects.organizationId, organization.id))
-    .orderBy(desc(projects.createdAt))
-    .limit(8);
-  const sidebarRepositories = await db
-    .select({
-      id: repositories.id,
-      projectId: repositories.projectId,
-      owner: repositories.owner,
-      name: repositories.name
-    })
-    .from(repositories)
-    .innerJoin(projects, eq(repositories.projectId, projects.id))
-    .where(eq(projects.organizationId, organization.id))
-    .orderBy(asc(repositories.owner), asc(repositories.name))
-    .limit(24);
+  const [usage, userProjects, sidebarRepositories] = await Promise.all([
+    getPlanUsageSnapshot(session.user, organization),
+    db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        slug: projects.slug
+      })
+      .from(projects)
+      .where(eq(projects.organizationId, organization.id))
+      .orderBy(desc(projects.createdAt))
+      .limit(8),
+    db
+      .select({
+        id: repositories.id,
+        projectId: repositories.projectId,
+        owner: repositories.owner,
+        name: repositories.name
+      })
+      .from(repositories)
+      .innerJoin(projects, eq(repositories.projectId, projects.id))
+      .where(eq(projects.organizationId, organization.id))
+      .orderBy(asc(repositories.owner), asc(repositories.name))
+      .limit(24)
+  ]);
+  const repositoriesByProject = sidebarRepositories.reduce<Record<string, Array<{ id: string; owner: string; name: string }>>>((acc, repository) => {
+    (acc[repository.projectId] ??= []).push({ id: repository.id, owner: repository.owner, name: repository.name });
+    return acc;
+  }, {});
   const sidebarProjects = userProjects.map((project) => ({
     ...project,
-    repositories: sidebarRepositories
-      .filter((repository) => repository.projectId === project.id)
-      .map((repository) => ({ id: repository.id, owner: repository.owner, name: repository.name }))
+    repositories: repositoriesByProject[project.id] ?? []
   }));
 
   return (

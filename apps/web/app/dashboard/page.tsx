@@ -6,6 +6,7 @@ import { AnchorButton, Card } from "@commitglow/ui";
 import { changelogs, commits, integrations, projects, repositories } from "@commitglow/db/schema";
 import { and, count, desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -64,43 +65,55 @@ export default async function DashboardPage() {
   }
 
   const { active: organization } = await getActiveOrganization(session.user);
-  const usage = await getPlanUsageSnapshot(session.user, organization);
-  const [projectCount] = await db.select({ value: count() }).from(projects).where(eq(projects.organizationId, organization.id));
-  const [repositoryCount] = await db
-    .select({ value: count() })
-    .from(repositories)
-    .innerJoin(projects, eq(repositories.projectId, projects.id))
-    .where(eq(projects.organizationId, organization.id));
-  const [privateRepositoryCount] = await db
-    .select({ value: count() })
-    .from(repositories)
-    .innerJoin(projects, eq(repositories.projectId, projects.id))
-    .where(and(eq(projects.organizationId, organization.id), eq(repositories.isPrivate, true)));
-  const [changelogCount] = await db
-    .select({ value: count() })
-    .from(changelogs)
-    .innerJoin(projects, eq(changelogs.projectId, projects.id))
-    .where(eq(projects.organizationId, organization.id));
-  const [commitCount] = await db
-    .select({ value: count() })
-    .from(commits)
-    .innerJoin(repositories, eq(commits.repositoryId, repositories.id))
-    .innerJoin(projects, eq(repositories.projectId, projects.id))
-    .where(eq(projects.organizationId, organization.id));
-  const workspaceProviders = await db.select({ metadata: integrations.metadata }).from(integrations).where(eq(integrations.organizationId, organization.id));
-  const recentProjects = await db
-    .select({ id: projects.id, name: projects.name, slug: projects.slug, createdAt: projects.createdAt })
-    .from(projects)
-    .where(eq(projects.organizationId, organization.id))
-    .orderBy(desc(projects.createdAt))
-    .limit(3);
-  const recentChangelogs = await db
-    .select({ id: changelogs.id, title: changelogs.title, version: changelogs.version, createdAt: changelogs.createdAt, projectName: projects.name, projectSlug: projects.slug })
-    .from(changelogs)
-    .innerJoin(projects, eq(changelogs.projectId, projects.id))
-    .where(eq(projects.organizationId, organization.id))
-    .orderBy(desc(changelogs.createdAt))
-    .limit(3);
+  const [
+    usage,
+    [projectCount],
+    [repositoryCount],
+    [privateRepositoryCount],
+    [changelogCount],
+    [commitCount],
+    workspaceProviders,
+    recentProjects,
+    recentChangelogs
+  ] = await Promise.all([
+    getPlanUsageSnapshot(session.user, organization),
+    db.select({ value: count() }).from(projects).where(eq(projects.organizationId, organization.id)),
+    db
+      .select({ value: count() })
+      .from(repositories)
+      .innerJoin(projects, eq(repositories.projectId, projects.id))
+      .where(eq(projects.organizationId, organization.id)),
+    db
+      .select({ value: count() })
+      .from(repositories)
+      .innerJoin(projects, eq(repositories.projectId, projects.id))
+      .where(and(eq(projects.organizationId, organization.id), eq(repositories.isPrivate, true))),
+    db
+      .select({ value: count() })
+      .from(changelogs)
+      .innerJoin(projects, eq(changelogs.projectId, projects.id))
+      .where(eq(projects.organizationId, organization.id)),
+    db
+      .select({ value: count() })
+      .from(commits)
+      .innerJoin(repositories, eq(commits.repositoryId, repositories.id))
+      .innerJoin(projects, eq(repositories.projectId, projects.id))
+      .where(eq(projects.organizationId, organization.id)),
+    db.select({ metadata: integrations.metadata }).from(integrations).where(eq(integrations.organizationId, organization.id)),
+    db
+      .select({ id: projects.id, name: projects.name, slug: projects.slug, createdAt: projects.createdAt })
+      .from(projects)
+      .where(eq(projects.organizationId, organization.id))
+      .orderBy(desc(projects.createdAt))
+      .limit(3),
+    db
+      .select({ id: changelogs.id, title: changelogs.title, version: changelogs.version, createdAt: changelogs.createdAt, projectName: projects.name, projectSlug: projects.slug })
+      .from(changelogs)
+      .innerJoin(projects, eq(changelogs.projectId, projects.id))
+      .where(eq(projects.organizationId, organization.id))
+      .orderBy(desc(changelogs.createdAt))
+      .limit(3)
+  ]);
   const totalRepositories = repositoryCount?.value ?? 0;
   const privateRepositories = privateRepositoryCount?.value ?? 0;
   const publicRepositories = Math.max(0, totalRepositories - privateRepositories);
@@ -222,14 +235,14 @@ export default async function DashboardPage() {
             <div>
               <div className="mb-5 flex items-center justify-between gap-4">
                 <h2 className="font-mono text-lg text-white">Recent projects</h2>
-                <a href="/dashboard/projects" className="font-mono text-xs uppercase tracking-[0.14em] text-violet-200 transition hover:text-white">View all -&gt;</a>
+                <Link href="/dashboard/projects" className="font-mono text-xs uppercase tracking-[0.14em] text-violet-200 transition hover:text-white">View all -&gt;</Link>
               </div>
               <div className="grid gap-3">
                 {recentProjects.map((project) => (
-                  <a key={project.id} href={`/dashboard/projects/${project.slug}`} className="block rounded-sm border border-white/10 bg-white/[0.02] p-4 transition hover:border-violet-300/40">
+                  <Link key={project.id} href={`/dashboard/projects/${project.slug}`} className="block rounded-sm border border-white/10 bg-white/[0.02] p-4 transition hover:border-violet-300/40">
                     <p className="font-mono text-base text-white">{project.name}</p>
                     <p className="mt-1 font-mono text-xs text-zinc-500">/{project.slug}</p>
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -250,10 +263,10 @@ export default async function DashboardPage() {
               </div>
               <div className="grid gap-3">
                 {recentChangelogs.map((changelog) => (
-                  <a key={changelog.id} href={`/dashboard/projects/${changelog.projectSlug}/changelogs`} className="block rounded-sm border border-white/10 bg-white/[0.02] p-4 transition hover:border-violet-300/40">
+                  <Link key={changelog.id} href={`/dashboard/projects/${changelog.projectSlug}/changelogs`} className="block rounded-sm border border-white/10 bg-white/[0.02] p-4 transition hover:border-violet-300/40">
                     <p className="font-mono text-base text-white">{changelog.title}</p>
                     <p className="mt-1 font-mono text-xs text-zinc-500">{changelog.projectName}{changelog.version ? ` / ${changelog.version}` : ""}</p>
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>

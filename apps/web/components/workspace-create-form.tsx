@@ -16,29 +16,29 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
 
   return (
     <Button type="submit" variant="primary" disabled={pending || disabled} className="w-full">
-      {pending ? "Creating..." : "Create Workspace"}
+      {pending ? "Creating…" : "Create Workspace"}
     </Button>
   );
 }
 
 export function WorkspaceCreateForm({ disabled, onSuccess }: { disabled: boolean; onSuccess?: () => void }) {
   const formRef = useRef<HTMLFormElement>(null);
-  const router = useRouter();
+  const { refresh } = useRouter();
   const [state, formAction] = useActionState(createWorkspace, initialState);
 
   useEffect(() => {
     if (state.status === "success") {
       formRef.current?.reset();
-      router.refresh();
+      refresh();
       onSuccess?.();
     }
-  }, [onSuccess, router, state.status]);
+  }, [onSuccess, refresh, state.status]);
 
   return (
     <form ref={formRef} action={formAction} className="mt-6 space-y-4">
-      <label className="block">
+      <label htmlFor="new-workspace-name" className="block">
         <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Workspace name</span>
-        <Input name="name" placeholder="Acme Engineering" minLength={2} maxLength={80} required disabled={disabled} />
+        <Input id="new-workspace-name" name="name" placeholder="Acme Engineering" minLength={2} maxLength={80} required disabled={disabled} />
       </label>
       <SubmitButton disabled={disabled} />
       <div aria-live="polite" className="min-h-6">

@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Button, Input } from "@commitglow/ui";
 import { DemoLivePreview } from "@/components/demo-live-preview";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import Link from "next/link";
 import { seo } from "@/lib/seo";
 
 type SearchParams = Promise<{ repo?: string }>;
@@ -37,7 +38,7 @@ export default async function DemoPage({ searchParams }: { searchParams: SearchP
     <main className="min-h-screen overflow-hidden">
       <SiteHeader />
       <section className="relative mx-auto w-full max-w-7xl px-5 py-10 sm:px-8 lg:py-16">
-        <div className="pointer-events-none absolute left-1/2 top-16 h-72 w-72 -translate-x-1/2 rounded-full bg-violet-500/10 blur-3xl" />
+        <div className="pointer-events-none absolute left-1/2 top-16 size-72 -translate-x-1/2 rounded-full bg-violet-500/10 blur-3xl" />
         <div className="relative mx-auto max-w-4xl text-center">
           <p className="mx-auto mb-6 w-fit rounded-sm border border-violet-300/30 bg-violet-500/10 px-3 py-2 font-mono text-xs uppercase tracking-[0.18em] text-violet-200">// public AI workbench</p>
           <h1 className="font-mono text-4xl leading-[0.96] tracking-[-0.08em] text-white sm:text-6xl">
@@ -54,8 +55,8 @@ export default async function DemoPage({ searchParams }: { searchParams: SearchP
             <span className="rounded-sm border border-white/10 px-2.5 py-1.5">Gitea URL</span>
           </div>
           <div className="mt-4 flex flex-wrap justify-center gap-4 font-mono text-xs text-violet-200">
-            <a href="/demo?repo=github%3Avercel%2Fnext.js" className="underline-offset-4 hover:underline">Try Next.js</a>
-            <a href="/demo?repo=gitlab%3Agitlab-org%2Fgitlab" className="underline-offset-4 hover:underline">Try GitLab</a>
+            <Link href="/demo?repo=github%3Avercel%2Fnext.js" className="underline-offset-4 hover:underline">Try Next.js</Link>
+            <Link href="/demo?repo=gitlab%3Agitlab-org%2Fgitlab" className="underline-offset-4 hover:underline">Try GitLab</Link>
           </div>
         </div>
         <div className="relative mt-10">

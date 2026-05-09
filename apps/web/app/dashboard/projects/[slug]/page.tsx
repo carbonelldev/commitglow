@@ -21,9 +21,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     notFound();
   }
 
-  const [repositoryCount] = await db.select({ value: count() }).from(repositories).where(eq(repositories.projectId, project.id));
-  const [changelogCount] = await db.select({ value: count() }).from(changelogs).where(eq(changelogs.projectId, project.id));
-  const [commitCount] = await db.select({ value: count() }).from(commits).innerJoin(repositories, eq(commits.repositoryId, repositories.id)).where(eq(repositories.projectId, project.id));
+  const [[repositoryCount], [changelogCount], [commitCount]] = await Promise.all([
+    db.select({ value: count() }).from(repositories).where(eq(repositories.projectId, project.id)),
+    db.select({ value: count() }).from(changelogs).where(eq(changelogs.projectId, project.id)),
+    db.select({ value: count() }).from(commits).innerJoin(repositories, eq(commits.repositoryId, repositories.id)).where(eq(repositories.projectId, project.id))
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl">

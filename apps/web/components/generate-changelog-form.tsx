@@ -38,7 +38,7 @@ function SaveButton() {
 
   return (
     <Button type="submit" variant="primary" disabled={pending} className="w-full">
-      {pending ? "Saving Draft..." : "Save Generated Draft"}
+      {pending ? "Saving Draft…" : "Save Generated Draft"}
     </Button>
   );
 }
@@ -100,9 +100,10 @@ export function GenerateChangelogForm({ projectId, projectSlug, repositories, pr
 
   return (
     <div className="space-y-5">
-      <label className="block">
+      <label htmlFor="generate-changelog-repository" className="block">
         <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Synced repository</span>
         <Select
+          id="generate-changelog-repository"
           value={selectedRepositoryId}
           onChange={(event) => generate(event.target.value)}
           disabled={generating || reposWithCommits.length === 0}
@@ -123,7 +124,7 @@ export function GenerateChangelogForm({ projectId, projectSlug, repositories, pr
       ) : null}
 
       {generating ? (
-        <p className="font-mono text-sm text-zinc-400">// Generating changelog preview...</p>
+        <p className="font-mono text-sm text-zinc-400">// Generating changelog preview…</p>
       ) : null}
 
       {preview.status === "error" && preview.message ? (
@@ -147,14 +148,14 @@ export function GenerateChangelogForm({ projectId, projectSlug, repositories, pr
             <input type="hidden" name="body" value={body} />
             <input type="hidden" name="selectedCommits" value={(selectedShas ?? []).join(",")} />
 
-            <label className="block">
+            <label htmlFor="generated-changelog-title" className="block">
               <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Title</span>
-              <Input name="title" value={title} onChange={(event) => setTitle(event.target.value)} maxLength={120} required />
+              <Input id="generated-changelog-title" name="title" value={title} onChange={(event) => setTitle(event.target.value)} maxLength={120} required />
             </label>
 
-            <label className="block">
+            <label htmlFor="generated-changelog-version" className="block">
               <span className="mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-zinc-500">Version</span>
-              <Input name="version" value={version} onChange={(event) => setVersion(event.target.value)} maxLength={48} />
+              <Input id="generated-changelog-version" name="version" value={version} onChange={(event) => setVersion(event.target.value)} maxLength={48} />
             </label>
 
             <SaveButton />

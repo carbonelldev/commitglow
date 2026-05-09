@@ -1,4 +1,4 @@
-import { getSettingsSnapshot } from "@/app/dashboard/settings/actions";
+﻿import { getSettingsSnapshot } from "@/app/dashboard/settings/actions";
 import { AccountSettingsForm } from "@/components/account-settings-form";
 import { BillingPortalButton } from "@/components/billing-portal-button";
 import { env } from "@/lib/env";
@@ -37,7 +37,7 @@ export default async function AccountPage() {
   return (
     <div className="mx-auto max-w-6xl">
       <div className="relative overflow-hidden rounded-lg border border-white/10 bg-[radial-gradient(circle_at_20%_0%,rgba(139,92,246,0.24),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)_42%,rgba(0,0,0,0.24))] p-6 shadow-[0_28px_120px_rgba(0,0,0,0.35)] md:p-8">
-        <div className="absolute right-8 top-8 hidden h-24 w-24 rounded-full border border-violet-200/20 bg-violet-400/10 blur-2xl md:block" />
+        <div className="absolute right-8 top-8 hidden size-24 rounded-full border border-violet-200/20 bg-violet-400/10 blur-2xl md:block" />
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-violet-200">// Account</p>
         <div className="mt-4 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>

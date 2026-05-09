@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { AnchorButton } from "@commitglow/ui";
 import { authClient } from "@/lib/auth-client";
@@ -8,7 +8,7 @@ import type { PaidPlanSlug } from "@/lib/plans";
 
 function ArrowRightIcon() {
   return (
-    <svg aria-hidden="true" className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 16 16">
+    <svg aria-hidden="true" className="size-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 16 16">
       <path d="M3 8h10m0 0L9 4m4 4-4 4" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
     </svg>
   );
